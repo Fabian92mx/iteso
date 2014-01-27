@@ -10,8 +10,4 @@ void funcion2(void) {
 
 void funcion1(void) {
 	printf("Funcion 1\n");
-}
-
-void funcion3(void) {
-	printf("Funcion 3\n");
-}
+} 
