@@ -57,12 +57,15 @@ return 1;
 printf("Conectado\n");
 cadena = (char *) calloc(1,5);
 status = read(server, cadena, 5);
-int tamano = 0;
-tamano = cadena;
-int fd = open("archivoRecivido.txt", O_CREAT, S_IWUSR);
-printf("El tamaño del archivo es de ; %i \n", tamano);
-status = read(server,cadena,tamano);
-printf("Nos regreso el tiempo: %s\n",cadena);
+		int tamano = 0;
+		tamano = cadena;
+		int fd = open("archivoRecivido.txt", O_CREAT, S_IWUSR);
+		printf("El tamaño del archivo a escribir es de ; %i \n", tamano);
+toWrite = (char *) calloc(1,tamano);
+	//Escribir lo recibido:
+	
+status = read(server,toWrite,tamano);
+printf("Se escribió:\n %s\n",toWrite);
 
 free(cadena);
 close(server);
