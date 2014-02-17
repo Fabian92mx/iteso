@@ -11,6 +11,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <time.h>
+#include <fcntl.h>
 
 int main(int args, char *argv[]) {
 
@@ -58,6 +59,7 @@ cadena = (char *) calloc(1,5);
 status = read(server, cadena, 5);
 int tamano = 0;
 tamano = cadena;
+int fd = open("archivoRecivido.txt", O_CREAT, S_IWUSR);
 printf("El tamaño del archivo es de ; %i \n", tamano);
 status = read(server,cadena,tamano);
 printf("Nos regreso el tiempo: %s\n",cadena);

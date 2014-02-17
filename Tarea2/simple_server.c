@@ -11,6 +11,7 @@
 #include <string.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 int main(int args, char *argv[]) {
 
@@ -44,9 +45,9 @@ return 1;
 }
 
 strcpy(filePath, argv[2]);
-file = open("filePath");
+int fd = open("filePath", O_RDONLY);
 
-if(file == -1)
+if(fd == -1)
 {
 	fprintf(stderr, "Couldn't open file: %s\n",filePath);
 	return 1;
