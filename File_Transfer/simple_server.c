@@ -1,7 +1,3 @@
-/**
-*
-**/
-
 #include <sys/types.h>
 #include <stdio.h>
 #include <sys/stat.h>
@@ -11,6 +7,7 @@
 #include <string.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 int main(int args, char *argv[]) {
 
@@ -43,8 +40,10 @@ fprintf(stderr,"Port %i out of range (1-65535)\n",port);
 return 1;
 }
 
+printf("TEST\n");
 strcpy(filePath, argv[2]);
-file = open("filePath");
+printf("filename size:%ld\n",strlen(filePath));
+file = open(filePath,O_RDONLY);
 
 if(file == -1)
 {
@@ -53,7 +52,7 @@ if(file == -1)
 }
 
 //get the file size
-fstat(fd, &buf);
+fstat(file, &buf);
 fileSize = buf.st_size;
 
 //Iniciamos la apertura del Socket
