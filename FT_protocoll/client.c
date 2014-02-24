@@ -91,7 +91,7 @@ status = read(server,buffer,2);
 printf("El server nos dice: %s \n",buffer);
 if(strcmp(ok,buffer)!=0)
 	{
-	return(1);
+	return 1;
 	}
 
 //Recibir tamaño
@@ -108,7 +108,8 @@ readBytes = 0;
 writeBytes = 0;
  if ((fd = open("archivoRecivido.txt", O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP))==-1)
 	{
-	printf("Error al abrir el archivo");
+	printf("Error al abrir el archivo\n");
+	return 1;
 	}
 
 while((readBytes = read(server, buffer, BUFFERSIZE)) > 0)
@@ -123,10 +124,10 @@ while((readBytes = read(server, buffer, BUFFERSIZE)) > 0)
 	
 //Enviar Bye
 status = write(server, "Bye", 3);
-printf("Enviando Bye");
+printf("Enviando Bye\n");
 //Recibir Bye
 status = read(server, buffer, 3);
-printf("El server nos envia: %s", buffer);
+printf("El server nos envia: %s\n", buffer);
 
 close(fd);
 free(buffer);
