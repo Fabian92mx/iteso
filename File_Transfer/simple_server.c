@@ -108,6 +108,7 @@ return 1;
 	//enviar la longitud del archivo.
 readBytes = 0;
 writeBytes = 0;
+buffer = (char *) calloc(1,BUFFERSIZE);
 	while(readBytes = read(file, buffer, BUFFERSIZE) > 0)
 	{
 		writeBytes = 0;
@@ -115,7 +116,7 @@ writeBytes = 0;
 		{
 			writeBytes = write(client, buffer + writeBytes, readBytes - writeBytes);
 			printf("Se escribieron %i bytes de %i al cliente\n", writeBytes, readBytes);
-		{
+		}
 	}
 printf("Archivo enviado al cliente\n");
 close(client);
