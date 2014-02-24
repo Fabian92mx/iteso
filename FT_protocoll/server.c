@@ -9,7 +9,9 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-#define BUFFERSIZE	256
+#define BUFFERSIZE		256
+#define ERROR_NOT_FOUND		"ERROR: FILE NOT FOUND"
+#define OK			"OK"
 
 int main(int args, char *argv[]) {
 
@@ -30,6 +32,7 @@ int fileLength;
 char *buffer;
 int readBytes;
 int writeBytes;
+char *message = (char*) calloc(100, sizeof(char));
 
     //Validamos los Arguemntos
 if(args < 2) {
@@ -94,6 +97,7 @@ char ret = 0;
 char new = 0;
 readBytes = 0;
 int length = 0;
+
 printf("READING FILE NAME FROM CLIENT\n");
 while(ret != '\r' && new != '\n' && (readBytes = read(client, buffer, 1)) > 0)
 {
@@ -106,13 +110,47 @@ while(ret != '\r' && new != '\n' && (readBytes = read(client, buffer, 1)) > 0)
 
 printf("FILENAME READ: %s",filePath);
 
-
 //verifica existencia de archivo y su tamano
+file = open(filePath, O_RDONLY);
 
-//envia OK o ERROR_FILE_NOT_FOUND
-
-//Envia filesize
-
+if(file == -1)
+{
+	//envia file not found
+	printf("COULDNT OPEN FILE\n");
+	writeBytes = 0;
+	length = strlen(ERROR_NOT_FOUND);
+	printf("Enviando %s al cliente\n", ERROR_NOT_FOUND);
+	while(writeBytes < length)
+	{
+		writeBytes = write(client, ERROR_NOT_FOUND + writeBytes, length - writeBytes);
+		printf("Se escribieron %i bytes de %i al cliente\n", writeBytes, length);
+	}
+}else
+{
+	//Envia OK
+	writeBytes = 0;
+	length = strlen(OK);
+	printf("Enviando %s al cliente\n", OK);
+	while(writeBytes < length)
+	{
+		writeBytes = write(client, OK + writeBytes, length - writeBytes);
+		printf("Se escribieron %i bytes de %i al cliente\n", writeBytes, length);
+	}
+	//get the file size
+	fstat(file, &buf);
+	fileSize = buf.st_size;
+	printf("File Size: %i\n", fileSize);
+	//envia filesize
+	writeBytes = 0;
+	length = sizeof(int);
+	snprintf(message, 100, "%i", fileSize);
+	printf("Enviando %s al cliente\n", message);
+	while(writeBytes < length)
+	{
+		writeBytes = write(client, message + writeBytes, length - writeBytes);
+		printf("Se escribieron %i bytes de %i al cliente\n", writeBytes, length);
+	}
+}
 //recibe confirmacion
 
 //envia archivo
@@ -121,16 +159,6 @@ printf("FILENAME READ: %s",filePath);
 
 //termina el protocolo
 
-if(file == -1)
-{
-	fprintf(stderr, "Couldn't open file: %s\n",filePath);
-	return 1;
-}
-
-//get the file size
-fstat(file, &buf);
-fileSize = buf.st_size;
-printf("File Size: %i\n", fileSize);
 
 //ciclo para leer el archivo. buffer size
 readBytes = 0;
@@ -151,6 +179,7 @@ close(client);
 }
 
 free(buffer);
+free(message);
 free(filePath);
 close(file);
 return 0;
