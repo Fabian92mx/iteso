@@ -62,26 +62,17 @@ return 1;
 }
 
 printf("Conectado\n");
-/*
-//obtener el tamaño del nombre del archivo
-nombre = "algo.txt\0";
-size = strlen(nombre);
-printf("El tamaño del nombre es: %i \n",size);
-//enviar tamaño
-
-status=write(server,size,3);
-*/
 
 int readBytes = 0;
 int writeBytes = 0;
 buffer = (char *) calloc(1,BUFFERSIZE);
 
-		
+//Abrir/crear el archivo recivido		
  if ((fd = open("archivoRecivido.txt", O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP))==-1)
 	{
 	printf("Error al abrir el archivo");
 	}
-
+//Leer del server y escribir en file:
 while((readBytes = read(server, buffer, BUFFERSIZE)) > 0)
 	{	
 		writeBytes = 0;
@@ -92,7 +83,7 @@ while((readBytes = read(server, buffer, BUFFERSIZE)) > 0)
 		printf("Se leyeron %i bytes de %i del servidor\n", writeBytes, readBytes);	
 	}
 	
-	//Escribir lo recibido:
+
 close(fd);
 free(buffer);
 close(server);

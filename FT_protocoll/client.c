@@ -24,17 +24,21 @@ int localerror;
 struct sockaddr_in server_addr;
 socklen_t clienteLen;	
 int status;
+char *filePath;
 char *buffer;
 char *sizeOfFile;
 char *nombre;
 int size = 0;
 int tamano = 0;
+int fileSize = 0;
 int fd;
+int readBytes = 0;
+int writeBytes = 0;
 
-    //Validamos los Arguemntos
-if(args < 3) {
+    //Validamos los Argumentos
+if(args < 4) {
 fprintf(stderr,"Error: Missing Arguments\n");
-fprintf(stderr,"\tUSE: %s [ADDR] [PORT]\n",argv[0]);
+fprintf(stderr,"\tUSE: %s [ADDR] [PORT] [FILENAME]\n",argv[0]);
 return 1;
 }
 
@@ -62,22 +66,31 @@ return 1;
 }
 
 printf("Conectado\n");
-/*
-//obtener el tamaño del nombre del archivo
-nombre = "algo.txt\0";
-size = strlen(nombre);
-printf("El tamaño del nombre es: %i \n",size);
-//enviar tamaño
 
-status=write(server,size,3);
-*/
 
-int readBytes = 0;
-int writeBytes = 0;
 buffer = (char *) calloc(1,BUFFERSIZE);
 
+//Pedir un archivo
+filePath = (char*) malloc(sizeof(char) * strlen(argv[3]));
+strcpy(filePath, argv[3]);
+fd = open(filePath,O_RDONLY);
+fileSize = strlen(filePath);
+writeBytes = 0;
 
-		
+while(writeBytes < fileSize)
+{
+	writeBytes = write(server, filePath + writeBytes, fileSize - writeBytes);
+}	
+
+
+//Recivir respuesta
+
+//Recivir tamaño
+
+
+// Leer el archivo:
+readBytes = 0;
+writeBytes = 0;
  if ((fd = open("archivoRecivido.txt", O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP))==-1)
 	{
 	printf("Error al abrir el archivo");
@@ -93,8 +106,8 @@ while((readBytes = read(server, buffer, BUFFERSIZE)) > 0)
 		printf("Se leyeron %i bytes de %i del servidor\n", writeBytes, readBytes);	
 	}
 	
-	//Escribir lo recibido:
+
 close(fd);
-//free(sizeOfFile);
+free(buffer);
 close(server);
 }
