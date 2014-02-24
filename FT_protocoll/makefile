@@ -1,7 +1,7 @@
 init: server client
 
-server: simple_server.c
-	gcc -o server simple_server.c
+server: server.c
+	gcc -o server server.c
 
 client: client.c
 	gcc -o client client.c

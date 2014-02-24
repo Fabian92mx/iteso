@@ -32,10 +32,9 @@ int readBytes;
 int writeBytes;
 
     //Validamos los Arguemntos
-if(args < 3) {
+if(args < 2) {
 fprintf(stderr,"Error: Missing Arguments\n");
 fprintf(stderr,"\tUSE: %s [PORT]\n",argv[0]);
-fprintf(stderr,"\tSpecify file to transfer\n");
 return 1;
 }
 
@@ -44,22 +43,6 @@ if(port < 1 || port > 65535) {
 fprintf(stderr,"Port %i out of range (1-65535)\n",port);
 return 1;
 }
-
-printf("TEST\n");
-filePath = (char*) malloc(sizeof(char) * strlen(argv[2]));
-strcpy(filePath, argv[2]);
-file = open(filePath,O_RDONLY);
-
-if(file == -1)
-{
-	fprintf(stderr, "Couldn't open file: %s\n",filePath);
-	return 1;
-}
-
-//get the file size
-fstat(file, &buf);
-fileSize = buf.st_size;
-printf("File Size: %i\n", fileSize);
 
 //Iniciamos la apertura del Socket
 server = socket(PF_INET,SOCK_STREAM,0);
@@ -104,8 +87,52 @@ return 1;
 }
 
 //Inicia el protocolo...
+buffer = (char *) calloc(1, BUFFERSIZE);
+//recive nombre de archivo a enviar
+filePath = (char *) calloc(252, sizeof(char));
+char ret = 0;
+char new = 0;
+readBytes = 0;
+int length = 0;
+printf("READING FILE NAME FROM CLIENT\n");
+while(ret != '\r' && new != '\n' && (readBytes = read(client, buffer, 1)) > 0)
+{
+	
+	ret = new;
+	new = buffer[0];
+	printf("READ %c FROM CLIENT\n",new);
+	filePath[length] = new;
+}
+
+printf("FILENAME READ: %s",filePath);
+
+
+//verifica existencia de archivo y su tamano
+
+//envia OK o ERROR_FILE_NOT_FOUND
+
+//Envia filesize
+
+//recibe confirmacion
+
+//envia archivo
+
+//envia BYE
+
+//termina el protocolo
+
+if(file == -1)
+{
+	fprintf(stderr, "Couldn't open file: %s\n",filePath);
+	return 1;
+}
+
+//get the file size
+fstat(file, &buf);
+fileSize = buf.st_size;
+printf("File Size: %i\n", fileSize);
+
 //ciclo para leer el archivo. buffer size
-	//enviar la longitud del archivo.
 readBytes = 0;
 writeBytes = 0;
 buffer = (char *) calloc(1,BUFFERSIZE);
@@ -123,7 +150,8 @@ printf("Archivo enviado al cliente\n");
 close(client);
 }
 
-//close(server);
+free(buffer);
+free(filePath);
 close(file);
 return 0;
 }
