@@ -76,6 +76,7 @@ int readBytes = 0;
 int writeBytes = 0;
 buffer = (char *) calloc(1,BUFFERSIZE);
 
+
 		
  if ((fd = open("archivoRecivido.txt", O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP))==-1)
 	{
