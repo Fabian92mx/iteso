@@ -94,6 +94,6 @@ while((readBytes = read(server, buffer, BUFFERSIZE)) > 0)
 	
 	//Escribir lo recibido:
 close(fd);
-//free(sizeOfFile);
+free(buffer);
 close(server);
 }

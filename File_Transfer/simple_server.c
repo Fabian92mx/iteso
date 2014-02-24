@@ -123,7 +123,8 @@ printf("Archivo enviado al cliente\n");
 close(client);
 }
 
-//close(server);
+free(buffer);
+free(filePath);
 close(file);
 return 0;
 }

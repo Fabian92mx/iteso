@@ -6,3 +6,172 @@ printf("El tamaño del nombre es: %i \n",size);
 //enviar tamaño
 sizeOfFile = (char *) calloc(1,3);
 status=write(server,size,3);
+#include <sys/types.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/socket.h>
+#include <errno.h>
+#include <string.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <time.h>
+#include <fcntl.h>
+
+#define BUFFERSIZE 256
+
+int main(int args, char *argv[]) {
+
+u_int port;
+int server;
+int client;
+int localerror;
+struct sockaddr_in server_addr;
+socklen_t clienteLen;	
+int status;
+char *buffer;
+char *sizeOfFile;
+char *nombre;
+int size = 0;
+int tamano = 0;
+int fd;
+#include <sys/types.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/socket.h>
+#include <errno.h>
+#include <string.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <time.h>
+#include <fcntl.h>
+
+#define BUFFERSIZE 256
+
+int main(int args, char *argv[]) {
+
+u_int port;
+int server;
+int client;
+int localerror;
+struct sockaddr_in server_addr;
+socklen_t clienteLen;	
+int status;
+char *buffer;
+char *sizeOfFile;
+char *nombre;
+int size = 0;
+int tamano = 0;
+int fd;
+#include <sys/types.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/socket.h>
+#include <errno.h>
+#include <string.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <time.h>
+#include <fcntl.h>
+
+#define BUFFERSIZE 256
+
+int main(int args, char *argv[]) {
+
+u_int port;
+int server;
+int client;
+int localerror;
+struct sockaddr_in server_addr;
+socklen_t clienteLen;	
+int status;
+char *buffer;
+char *sizeOfFile;
+char *nombre;
+int size = 0;
+int tamano = 0;
+int fd;
+#include <sys/types.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/socket.h>
+#include <errno.h>
+#include <string.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <time.h>
+#include <fcntl.h>
+
+#define BUFFERSIZE 256
+
+int main(int args, char *argv[]) {
+
+u_int port;
+int server;
+int client;
+int localerror;
+struct sockaddr_in server_addr;
+socklen_t clienteLen;	
+int status;
+char *buffer;
+char *sizeOfFile;
+char *nombre;
+int size = 0;
+int tamano = 0;
+int fd;
+#include <sys/types.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/socket.h>
+#include <errno.h>
+#include <string.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <time.h>
+#include <fcntl.h>
+
+#define BUFFERSIZE 256
+
+int main(int args, char *argv[]) {
+
+u_int port;
+int server;
+int client;
+int localerror;
+struct sockaddr_in server_addr;
+socklen_t clienteLen;	
+int status;
+char *buffer;
+char *sizeOfFile;
+char *nombre;
+int size = 0;
+int tamano = 0;
+int fd;
+#include <sys/types.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/socket.h>
+#include <errno.h>
+#include <string.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <time.h>
+#include <fcntl.h>
+
+#define BUFFERSIZE 256
+
+int main(int args, char *argv[]) {
+
+u_int port;
+int server;
+int client;
+int localerror;
+struct sockaddr_in server_addr;
+socklen_t clienteLen;	
+int status;
+char *buffer;
+char *sizeOfFile;
+char *nombre;
+int size = 0;
+int tamano = 0;
+int fd;
+
