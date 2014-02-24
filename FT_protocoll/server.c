@@ -11,7 +11,8 @@
 
 #define BUFFERSIZE		256
 #define ERROR_NOT_FOUND		"NO"
-#define OK			"OK"
+#define OK			"Ok"
+#define BYE			"Bye"
 
 int main(int args, char *argv[]) {
 
@@ -109,7 +110,7 @@ while(ret != '\r' && new != '\n' && (readBytes = read(client, buffer, 1)) > 0)
 	length++;
 }
 
-printf("FILENAME READ: %s", filePath);
+printf("FILENAME READ: %s\n", filePath);
 
 //verifica existencia de archivo y su tamano
 file = open(filePath, O_RDONLY);
@@ -153,15 +154,13 @@ if(file == -1)
 	}
 }
 //recibe confirmacion
-
+free(buffer);
+printf("Esperando confirmacion de cliente...\n");
+buffer = (char *) calloc(3, sizeof(char));
+status = read(client, buffer, 2);
+printf("Ciente ha confirmado: %s\n", buffer);
 //envia archivo
-
-//envia BYE
-
-//termina el protocolo
-
-
-//ciclo para leer el archivo. buffer size
+printf("Enviando %s al cliente\n", filePath);
 readBytes = 0;
 writeBytes = 0;
 buffer = (char *) calloc(1,BUFFERSIZE);
@@ -176,6 +175,20 @@ buffer = (char *) calloc(1,BUFFERSIZE);
 		}
 	}
 printf("Archivo enviado al cliente\n");
+//recibe BYE
+free(buffer);
+printf("Esperando despedida de cliente...\n");
+buffer = (char *) calloc(4, sizeof(char));
+status = read(client, buffer, 3);
+printf("Ciente se ha despedido: %s\n", buffer);
+
+//envia BYE
+printf("Despidiendome del cliente...\n");
+status = write(client, BYE, strlen(BYE));
+//termina el protocolo
+printf("Protocolo terminado con exito\n");
+
+//ciclo para leer el archivo. buffer size
 close(client);
 }
 
