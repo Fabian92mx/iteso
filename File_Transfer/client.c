@@ -72,30 +72,27 @@ printf("El tamaño del nombre es: %i \n",size);
 status=write(server,size,3);
 */
 
-int readbytes = 0;
-int writebytes = 0;
+int readBytes = 0;
+int writeBytes = 0;
 buffer = (char *) calloc(1,BUFFERSIZE);
 
 		
- if (fd = open("archivoRecivido.txt", O_WRONLY | O_CREAT )==-1)
+ if ((fd = open("archivoRecivido.txt", O_WRONLY | O_CREAT ))==-1)
 	{
 	printf("Error al abrir el archivo");
 	}
 
-while(readBytes = read(server, buffer, BUFFERSIZE) > 0)
+while((readBytes = read(server, buffer, BUFFERSIZE)) > 0)
 	{	
 		writeBytes = 0;
 		while(writeBytes < readBytes)
 		{
-			writeBytes = write(file, buffer + writeBytes, readBytes - writeBytes);
+			writeBytes = write(fd, buffer + writeBytes, readBytes - writeBytes);
 		}
 		printf("Se leyeron %i bytes de %i del servidor\n", writeBytes, readBytes);	
 	}
 	
-toWrite = (char *) calloc(1,tamano);
 	//Escribir lo recibido:
-status = read(server,toWrite,tamano);
-printf("Se escribió:\n %s\n",toWrite);
 close(fd);
 //free(sizeOfFile);
 close(server);

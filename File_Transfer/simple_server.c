@@ -46,8 +46,8 @@ return 1;
 }
 
 printf("TEST\n");
+filePath = (char*) malloc(sizeof(char) * strlen(argv[2]));
 strcpy(filePath, argv[2]);
-printf("filename size:%ld\n",strlen(filePath));
 file = open(filePath,O_RDONLY);
 
 if(file == -1)
@@ -59,7 +59,7 @@ if(file == -1)
 //get the file size
 fstat(file, &buf);
 fileSize = buf.st_size;
-printf("File Size: %i\n");
+printf("File Size: %i\n", fileSize);
 
 //Iniciamos la apertura del Socket
 server = socket(PF_INET,SOCK_STREAM,0);
@@ -109,8 +109,9 @@ return 1;
 readBytes = 0;
 writeBytes = 0;
 buffer = (char *) calloc(1,BUFFERSIZE);
-	while(readBytes = read(file, buffer, BUFFERSIZE) > 0)
+	while((readBytes = read(file, buffer, BUFFERSIZE)) > 0)
 	{
+		printf("Se escribiran %i bytes al cliente\n", readBytes);
 		writeBytes = 0;
 		while(writeBytes < readBytes)
 		{
