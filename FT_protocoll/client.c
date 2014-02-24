@@ -28,6 +28,7 @@ char *filePath;
 char *buffer;
 char *sizeOfFile;
 char *nombre;
+char ok[3] = "OK";
 int size = 0;
 int tamano = 0;
 int fileSize = 0;
@@ -85,7 +86,12 @@ while(writeBytes < fileSize)
 
 //Recivir respuesta
 status = read(server,buffer,30);
-printf("%s",buffer);
+printf("El server nos dice: %s",buffer);
+if(strcmp(ok,buffer)!=0)
+	{
+	return(1)
+	}
+
 //Recivir tamaño
 
 
