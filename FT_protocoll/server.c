@@ -105,7 +105,8 @@ while(ret != '\r' && new != '\n' && (readBytes = read(client, buffer, 1)) > 0)
 	ret = new;
 	new = buffer[0];
 	printf("READ %c FROM CLIENT\n",new);
-	filePath[length] = new;
+	if(new != '\r' && new != '\n')
+		filePath[length] = new;
 }
 
 printf("FILENAME READ: %s",filePath);
