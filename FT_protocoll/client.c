@@ -28,7 +28,7 @@ char *filePath;
 char *buffer;
 char *sizeOfFile;
 char *nombre;
-char ok[3] = "OK";
+char ok[2] = "OK";
 int size = 0;
 int tamano = 0;
 int fileSize = 0;
@@ -86,7 +86,7 @@ while(writeBytes < fileSize+2)
 }	
 
 
-//Recivir respuesta
+//Recibir respuesta
 status = read(server,buffer,2);
 printf("El server nos dice: %s \n",buffer);
 if(strcmp(ok,buffer)!=0)
@@ -94,8 +94,14 @@ if(strcmp(ok,buffer)!=0)
 	return(1);
 	}
 
-//Recivir tamaño
+//Recibir tamaño
 
+status = read(server,buffer,sizeof(int));
+printf("El tamaño del archivo es: %s \n",buffer);
+
+//Enviar "OK"
+
+status = write(server, "Ok", 2);
 
 // Leer el archivo:
 readBytes = 0;
@@ -115,6 +121,12 @@ while((readBytes = read(server, buffer, BUFFERSIZE)) > 0)
 		printf("Se leyeron %i bytes de %i del servidor\n", writeBytes, readBytes);	
 	}
 	
+//Enviar Bye
+status = write(server, "Bye", 3);
+printf("Enviando Bye");
+//Recibir Bye
+status = read(server, buffer, 3);
+printf("El server nos envia: %s", buffer);
 
 close(fd);
 free(buffer);

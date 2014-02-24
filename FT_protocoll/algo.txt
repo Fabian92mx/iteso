@@ -1,8 +1,1 @@
-printf("Conectado\n");
-//obtener el tamaño del nombre del archivo
-nombre = "algo.txt\0";
-size = strlen(nombre);
-printf("El tamaño del nombre es: %i \n",size);
-//enviar tamaño
-sizeOfFile = (char *) calloc(1,3);
-status=write(server,size,3);
+hola mundo
