@@ -144,7 +144,7 @@ if(file == -1)
 	printf("File Size: %i\n", fileSize);
 	//envia filesize
 	writeBytes = 0;
-	length = sizeof(int);
+	length = 10;
 	snprintf(message, 100, "%i", fileSize);
 	printf("Enviando %s al cliente\n", message);
 	while(writeBytes < length)
@@ -152,7 +152,6 @@ if(file == -1)
 		writeBytes = write(client, message + writeBytes, length - writeBytes);
 		printf("Se escribieron %i bytes de %i al cliente\n", writeBytes, length);
 	}
-}
 //recibe confirmacion
 free(buffer);
 printf("Esperando confirmacion de cliente...\n");
@@ -188,6 +187,7 @@ status = write(client, BYE, strlen(BYE));
 //termina el protocolo
 printf("Protocolo terminado con exito\n");
 
+}
 //ciclo para leer el archivo. buffer size
 close(client);
 }

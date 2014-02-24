@@ -28,7 +28,7 @@ char *filePath;
 char *buffer;
 char *sizeOfFile;
 char *nombre;
-char ok[2] = "OK";
+#define ok		 "Ok"
 int size = 0;
 int tamano = 0;
 int fileSize = 0;
@@ -88,17 +88,19 @@ while(writeBytes < fileSize+2)
 
 //Recibir respuesta
 status = read(server,buffer,2);
-printf("El server nos dice: %s \n",buffer);
+printf("El archivo existe?: %s \n",buffer);
+printf("strlen(buffer) = %i", (int)strlen(buffer));
 if(strcmp(ok,buffer)!=0)
 	{
 	return 1;
 	}
 
 //Recibir tamaño
-
-status = read(server,buffer,sizeof(int));
+free(buffer);
+buffer = (char*) calloc(1, BUFFERSIZE);
+status = read(server,buffer, 10);
 printf("El tamaño del archivo es: %s \n",buffer);
-
+int totalFileSize = atoi(buffer);
 //Enviar "OK"
 
 status = write(server, "Ok", 2);
@@ -111,21 +113,26 @@ writeBytes = 0;
 	printf("Error al abrir el archivo\n");
 	return 1;
 	}
-
-while((readBytes = read(server, buffer, BUFFERSIZE)) > 0)
+int totalReadBytes = 0;
+printf("TotalfileSize = %i\n", totalFileSize);
+while(totalReadBytes < totalFileSize && (readBytes = read(server, buffer, BUFFERSIZE)) > 0)
 	{	
 		writeBytes = 0;
 		while(writeBytes < readBytes)
 		{
 			writeBytes = write(fd, buffer + writeBytes, readBytes - writeBytes);
 		}
-		printf("Se leyeron %i bytes de %i del servidor\n", writeBytes, readBytes);	
+		printf("Se leyeron %i bytes de %i del servidor\n", readBytes, totalFileSize);
+		totalReadBytes += readBytes;	
 	}
 	
 //Enviar Bye
+printf("terminé de leer\n");
 status = write(server, "Bye", 3);
 printf("Enviando Bye\n");
 //Recibir Bye
+free(buffer);
+buffer = (char*) calloc(4, sizeof(char));
 status = read(server, buffer, 3);
 printf("El server nos envia: %s\n", buffer);
 
