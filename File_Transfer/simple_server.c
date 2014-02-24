@@ -9,6 +9,8 @@
 #include <unistd.h>
 #include <fcntl.h>
 
+#define BUFFERSIZE	256
+
 int main(int args, char *argv[]) {
 
 u_int port;
@@ -25,6 +27,9 @@ char byte;
 int fileSize;
 struct stat buf;
 int fileLength;
+char *buffer;
+int readBytes;
+int writeBytes;
 
     //Validamos los Arguemntos
 if(args < 3) {
@@ -54,6 +59,7 @@ if(file == -1)
 //get the file size
 fstat(file, &buf);
 fileSize = buf.st_size;
+printf("File Size: %i\n");
 
 //Iniciamos la apertura del Socket
 server = socket(PF_INET,SOCK_STREAM,0);
@@ -98,14 +104,24 @@ return 1;
 }
 
 //Inicia el protocolo...
-	
+//ciclo para leer el archivo. buffer size
 	//enviar la longitud del archivo.
-	status=write(client,fileLength,4);
-
+readBytes = 0;
+writeBytes = 0;
+	while(readBytes = read(file, buffer, BUFFERSIZE) > 0)
+	{
+		writeBytes = 0;
+		while(writeBytes < readBytes)
+		{
+			writeBytes = write(client, buffer + writeBytes, readBytes - writeBytes);
+			printf("Se escribieron %i bytes de %i al cliente\n", writeBytes, readBytes);
+		{
+	}
+printf("Archivo enviado al cliente\n");
 close(client);
 }
 
 //close(server);
-
+close(file);
 return 0;
 }
