@@ -77,19 +77,21 @@ strcpy(filePath, argv[3]);
 fd = open(filePath,O_RDONLY);
 fileSize = strlen(filePath);
 writeBytes = 0;
+filePath[fileSize] = '\r';
+filePath[fileSize+1] = '\n';
 
-while(writeBytes < fileSize)
+while(writeBytes < fileSize+2)
 {
-	writeBytes = write(server, filePath + writeBytes, fileSize - writeBytes);
+	writeBytes = write(server, filePath + writeBytes, fileSize+2 - writeBytes);
 }	
 
 
 //Recivir respuesta
 status = read(server,buffer,30);
-printf("El server nos dice: %s",buffer);
+printf("El server nos dice: %s \n",buffer);
 if(strcmp(ok,buffer)!=0)
 	{
-	return(1)
+	return(1);
 	}
 
 //Recivir tamaño
