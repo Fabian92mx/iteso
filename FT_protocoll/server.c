@@ -10,7 +10,7 @@
 #include <fcntl.h>
 
 #define BUFFERSIZE		256
-#define ERROR_NOT_FOUND		"ERROR: FILE NOT FOUND"
+#define ERROR_NOT_FOUND		"NO"
 #define OK			"OK"
 
 int main(int args, char *argv[]) {
@@ -101,15 +101,15 @@ int length = 0;
 printf("READING FILE NAME FROM CLIENT\n");
 while(ret != '\r' && new != '\n' && (readBytes = read(client, buffer, 1)) > 0)
 {
-	
 	ret = new;
 	new = buffer[0];
 	printf("READ %c FROM CLIENT\n",new);
 	if(new != '\r' && new != '\n')
 		filePath[length] = new;
+	length++;
 }
 
-printf("FILENAME READ: %s",filePath);
+printf("FILENAME READ: %s", filePath);
 
 //verifica existencia de archivo y su tamano
 file = open(filePath, O_RDONLY);

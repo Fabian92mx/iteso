@@ -87,7 +87,7 @@ while(writeBytes < fileSize+2)
 
 
 //Recivir respuesta
-status = read(server,buffer,30);
+status = read(server,buffer,2);
 printf("El server nos dice: %s \n",buffer);
 if(strcmp(ok,buffer)!=0)
 	{
