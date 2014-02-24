@@ -84,7 +84,8 @@ while(writeBytes < fileSize)
 
 
 //Recivir respuesta
-
+status = read(server,buffer,30);
+printf("%s",buffer);
 //Recivir tamaño
 
 
