@@ -18,7 +18,7 @@
 #include <sys/types.h>
 
 
-
+#include "debug.h"
 
 int getNewTCPSocket(int addrType);
 
@@ -48,7 +48,7 @@ fprintf(stderr,"Error: Can't change socket mode to listen (%s)\n",strerror(local
 return -1;
 }
 
-printf("Socket on %s:%u created",ip,port);
+debug(4,"Socket on %s:%u created",ip,port);
 
 return socketFD;
 }
@@ -77,7 +77,7 @@ return -1;
 
 void closeTCPSocket(const int socketFD) {
 close(socketFD);
-printf("Socket(%i) closed",socketFD);
+debug(4,"Socket(%i) closed",socketFD);
 return;
 }
 
@@ -141,7 +141,7 @@ fprintf(stderr,"Can't connect to %s:%i (%s)",ip,port,strerror(localerror));
 return -1;
 }
 
-printf("Connected to %s:%i",ip,port);
+debug(3,"Connected to %s:%i",ip,port);
 
 return clientSocket;
 }
@@ -179,7 +179,7 @@ while((writeBytes = write(socket,buffer+sentBytes,size-sentBytes)) > 0) {
 sentBytes += writeBytes;
 }
 
-printf("Se enviaron %i Byte\n",sentBytes);
+debug(4,"Se enviaron %i Byte\n",sentBytes);
 
 return sentBytes;
 }

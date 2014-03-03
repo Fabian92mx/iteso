@@ -1,27 +1,11 @@
-#Makefile
-#
-# Instrucciones para compilar
+init: all
 
-OBJS = tcp.o server.o main.o
-CC = gcc
-CFLAGS = -Wall -O2
-
-all: $(OBJS) webserver
+all: server.c tcp.c main.c
+	gcc -o webserver server.c main.c tcp.c
 
 
-webserver: $(OBJS)
-$(CC) $(CFLAGS) $^ -o $@
-
-%.o: %.c
-$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-rm -rf $(OBJS) webserver
+	rm webserver
 
-push:
-git add .
-git commit -m 'Commit from make'
-git push
 
-pull:
-git pull
