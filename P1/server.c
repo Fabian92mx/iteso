@@ -1,8 +1,8 @@
 /**
 @file server.c
-@brief Funciones generales para trabajar con un Socket de tipo TCP
+@brief Programa para recivir la solicitud de un archivo y enviarlo al cliente.
 
-@authors Javier de la Mora y Fabián Escobar
+Editado por: Javier de la Mora y Fabián Escobar
 @date Mar/2014
 
 */
@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
-
+#include <stdio.h>
 #include "server.h"
 #include "tcp.h"
 #include "debug.h"
@@ -62,6 +62,7 @@ void clientProccess(const int clientSocket) {
 
 	char *buffer;
 	char *firstLine;
+	char *fileName;
 	char html[250];
 	int file;
 	int readBytes;
@@ -87,6 +88,7 @@ void clientProccess(const int clientSocket) {
 
 	// PROCESAR EL GET
 	// TIP para esto: strtok
+	
 
 	//RESPONDER CON 200 OK SI EXISTE
 	strcpy(html, "HTTP/1.1 200 OK\r\n");
@@ -97,9 +99,22 @@ void clientProccess(const int clientSocket) {
 	//sendTCPLine4(clientSocket, html,strlen(html));
 	strcpy(html, "\r\n");
 	sendTCPLine4(clientSocket, html,strlen(html));
+	
+	strcpy(fileName, firstLine+4);
+	char*temp =fileName;
+	while(*temp != ' ')
+	{
+		printf("comparando:%c\n", *temp);
+		temp++;
 
+	}
+	printf("salió del ciclo");
+	*temp='\0';
+	printf("%s\n",fileName);	
+	
+	
 	//ENVIAR EL ARCHIVO
-	file = open("archivo.html",O_RDONLY);
+	file = open(fileName,O_RDONLY);
 	if(file == -1) {
 		error(errno, "No se pudo abrir el archivo");
 	}
