@@ -138,7 +138,7 @@ void clientProccess(const int clientSocket) {
 		sendTCPLine4(clientSocket,html,strlen(html));
 
 		//Obtiene el tamaño del archivo
-			//obtiene el tamaño de el archivo
+			//obtiene el tamaño del archivo
 		fstat(file, &buf);
 		sprintf(html,"Content-Length: %u\r\n",(u_int)buf.st_size);
 		sendTCPLine4(clientSocket,html,strlen(html));
