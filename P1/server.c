@@ -60,14 +60,18 @@ int startServer(const unsigned int port) {
 
 void clientProccess(const int clientSocket) {
 
-	char *buffer;
+	char *buffer;	
 	char *firstLine;
 	char *fileName;
+	struct stat buf;
 	char html[250];
 	int file;
 	int readBytes;
 	int firstFlag;
-
+	int fileSize;
+	int writeBytes;
+	int length;
+	
 	debug(2,"Inicio del proceso del Cliente\n");
 
 
@@ -85,49 +89,67 @@ void clientProccess(const int clientSocket) {
 		}
 		bzero(buffer,255);
 	}
-
+	
 	// PROCESAR EL GET
 	// TIP para esto: strtok
 	
-
+	debug(3,"First Line:%s\n", firstLine);
 	//RESPONDER CON 200 OK SI EXISTE
-	strcpy(html, "HTTP/1.1 200 OK\r\n");
-	sendTCPLine4(clientSocket, html,strlen(html));
-	//strcpy(html, "Content-Type: \r\n");
-	//sendTCPLine4(clientSocket, html,strlen(html));
-	//strcpy(html, "Content-Lenght: 457838592\r\n");
-	//sendTCPLine4(clientSocket, html,strlen(html));
-	strcpy(html, "\r\n");
-	sendTCPLine4(clientSocket, html,strlen(html));
+	fileName = calloc(255,1);	
+	strcpy(fileName, firstLine+5);
+	debug(3, "fileName: %s\n", fileName);
 	
-	strcpy(fileName, firstLine+4);
-	char*temp =fileName;
+	char *temp = fileName;
 	while(*temp != ' ')
 	{
-		printf("comparando:%c\n", *temp);
+		debug(3,"comparando:%c\n", *temp);
 		temp++;
 
 	}
-	printf("salió del ciclo");
+	debug(3,"salió del ciclo\n");
 	*temp='\0';
-	printf("%s\n",fileName);	
+	if(*fileName == '\0')
+		strcpy(fileName, "index.html");
+	debug(3, "[%s]\n", fileName);
 	
 	
 	//ENVIAR EL ARCHIVO
-	file = open(fileName,O_RDONLY);
+	file = open(fileName, O_RDONLY);
 	if(file == -1) {
 		error(errno, "No se pudo abrir el archivo");
+		//RESPONDER CON 404 NOT FOUND SI NO EXISTE
+		strcpy(html, "HTTP/1.1 404 Not Found\r\n");
+		sendTCPLine4(clientSocket, html,strlen(html));
+		
+		strcpy(html, "\r\n");
+		sendTCPLine4(clientSocket, html,strlen(html));
+		
+		strcpy(html, "<html><head><title>404 NOT FOUND</title></head><body>ERROR 404 NOT FOUND</body></html>");
+		sendTCPLine4(clientSocket, html,strlen(html));
+	}else
+	{
+
+		strcpy(html, "HTTP/1.1 200 OK\r\n");
+		sendTCPLine4(clientSocket, html,strlen(html));
+
+		//Enviar nombre del archivo
+			//ahorita solo envia uno
+		sprintf(html,"Content-Disposition: attachment; filename=%s\r\n",fileName);
+		sendTCPLine4(clientSocket,html,strlen(html));
+
+		//Obtiene el tamaño del archivo
+			//obtiene el tamaño de el archivo
+		fstat(file, &buf);
+		sprintf(html,"Content-Length: %u\r\n",(u_int)buf.st_size);
+		sendTCPLine4(clientSocket,html,strlen(html));
+
+		
+		//sendTCPLine4(clientSocket, html,strlen(html));
+
+		while((readBytes = read(file,buffer,255))>0) {
+			sendTCPLine4(clientSocket,buffer,readBytes);
+		}
 	}
-
-	while((readBytes = read(file,buffer,255))>0) {
-		sendTCPLine4(clientSocket,buffer,readBytes);
-	}
-
-	//RESPONDER CON 404 NOT FOUND SI NO EXISTE
-
-	//strcpy(html, "<html><head><title>404 NOT FOUND</title></head><body>NO EXISTE!!!</body></html>");
-	//sendTCPLine4(clientSocket, html,strlen(html));
-
 	//CERRAMOS LA COMUNICACIÓN
 	close(clientSocket);
 	free(buffer);
