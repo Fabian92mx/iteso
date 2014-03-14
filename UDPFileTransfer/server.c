@@ -1,0 +1,80 @@
+#include <stdio.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
+int main(int argc, char* argv[]) {
+
+int udpSocket;
+struct sockaddr_in udpServer, udpClient;
+
+socklen_t addrlen = sizeof(udpClient);
+char buffer[255];
+char ip[17];
+u_short clientPort;
+char *broadcastIP;
+struct sockaddr_in broadcastAddr;
+int broadcastPermission;
+
+int status;
+
+broadcastIP = argv[1];
+//Creamos el Socket
+udpSocket = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
+if(udpSocket == -1) {
+fprintf(stderr,"Can't create UDP Socket");
+return 1;
+}
+
+    udpServer.sin_family = AF_INET;
+    inet_pton(AF_INET,"0.0.0.0",&udpServer.sin_addr.s_addr);
+    udpServer.sin_port = htons(5000);
+
+    status = bind(udpSocket, (struct sockaddr*)&udpServer,sizeof(udpServer));
+
+    broadcastPermission = 1;
+    status = setsockopt(udpSocket, SOL_SOCKET, SO_BROADCAST, (void *) &broadcastPermission, sizeof(broadcastPermission));
+
+    if(status != 0) {
+fprintf(stderr,"Can't bind");
+    }
+    memset(&broadcastAddr, 0, sizeof(broadcastAddr));
+    broadcastAddr.sin_family = AF_INET;
+inet_pton(AF_INET,broadcastIP,&broadcastAddr.sin_addr.s_addr);
+
+
+while(1) {
+bzero(buffer,255);
+//printf("esperando\n");
+status = recvfrom(udpSocket, buffer, 255, 0, (struct sockaddr*)&udpClient, &addrlen );
+
+inet_ntop(AF_INET,&(udpClient.sin_addr),ip,INET_ADDRSTRLEN);
+clientPort = ntohs(udpClient.sin_port);
+
+printf("Recibimos: [%s:%i] %s\n",ip,clientPort,buffer);
+broadcastAddr.sin_port = htons(clientPort);
+
+status = sendto(udpSocket,buffer,255,0,(struct sockaddr*)&broadcastAddr, sizeof(broadcastAddr));
+//printf("enviando:%s\n",buffer);
+    fflush(stdout);
+
+
+
+status = recvfrom(udpSocket, buffer, 255, 0, (struct sockaddr*)&udpClient, &addrlen );
+
+printf("Recibimos: [%s:%i] %s\n",ip,clientPort,buffer);
+
+status = sendto(udpSocket,buffer,255,0,(struct sockaddr*)&broadcastAddr, sizeof(broadcastAddr));
+//printf("enviando:%s\n",buffer);
+    fflush(stdout);
+
+
+}
+
+close(udpSocket);
+
+return 0;
+
+}
