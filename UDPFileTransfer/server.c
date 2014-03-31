@@ -1,80 +1,40 @@
-#include <stdio.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
+#include<stdio.h>
+#include<sys/types.h>
+#include<sys/stat.h>
+#include<sys/socket.h>
+#include<netinet/in.h>
+#include<arpa/inet.h>
+#include<fcntl.h>
+#include<string.h>
 
-int main(int argc, char* argv[]) {
+int main(int args, char *argv[])
+{
+    struct sockaddr_in server,client;
+    int port,serversock,n,fp,end;
+    char addr[16],filename[20],buffer[100];
+	
+	strcpy(addr, argv[1]);
+	port = atoi(argv[2]);
 
-int udpSocket;
-struct sockaddr_in udpServer, udpClient;
-
-socklen_t addrlen = sizeof(udpClient);
-char buffer[255];
-char ip[17];
-u_short clientPort;
-char *broadcastIP;
-struct sockaddr_in broadcastAddr;
-int broadcastPermission;
-
-int status;
-
-broadcastIP = argv[1];
-//Creamos el Socket
-udpSocket = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
-if(udpSocket == -1) {
-fprintf(stderr,"Can't create UDP Socket");
-return 1;
-}
-
-    udpServer.sin_family = AF_INET;
-    inet_pton(AF_INET,"0.0.0.0",&udpServer.sin_addr.s_addr);
-    udpServer.sin_port = htons(5000);
-
-    status = bind(udpSocket, (struct sockaddr*)&udpServer,sizeof(udpServer));
-
-    broadcastPermission = 1;
-    status = setsockopt(udpSocket, SOL_SOCKET, SO_BROADCAST, (void *) &broadcastPermission, sizeof(broadcastPermission));
-
-    if(status != 0) {
-fprintf(stderr,"Can't bind");
+    serversock=socket(AF_INET,SOCK_DGRAM,0);
+    server.sin_family=AF_INET;
+    server.sin_port=port;
+    server.sin_addr.s_addr=inet_addr(addr);
+    bind(serversock,(struct sockaddr *)&server,sizeof(server));
+	printf("Connection established\n");
+    n=sizeof(client);
+    recvfrom(serversock,filename,sizeof(filename), 0,(struct sockaddr *)&client,&n);
+    fp=open(filename,O_RDONLY);
+    while(1)
+    {
+        end=read(fp,buffer,sizeof(buffer));
+        if(end==0)
+            break;
+        sendto(serversock,buffer,sizeof(buffer),0,(struct sockaddr *)&client,n);
+        bzero(buffer,100);
     }
-    memset(&broadcastAddr, 0, sizeof(broadcastAddr));
-    broadcastAddr.sin_family = AF_INET;
-inet_pton(AF_INET,broadcastIP,&broadcastAddr.sin_addr.s_addr);
-
-
-while(1) {
-bzero(buffer,255);
-//printf("esperando\n");
-status = recvfrom(udpSocket, buffer, 255, 0, (struct sockaddr*)&udpClient, &addrlen );
-
-inet_ntop(AF_INET,&(udpClient.sin_addr),ip,INET_ADDRSTRLEN);
-clientPort = ntohs(udpClient.sin_port);
-
-printf("Recibimos: [%s:%i] %s\n",ip,clientPort,buffer);
-broadcastAddr.sin_port = htons(clientPort);
-
-status = sendto(udpSocket,buffer,255,0,(struct sockaddr*)&broadcastAddr, sizeof(broadcastAddr));
-//printf("enviando:%s\n",buffer);
-    fflush(stdout);
-
-
-
-status = recvfrom(udpSocket, buffer, 255, 0, (struct sockaddr*)&udpClient, &addrlen );
-
-printf("Recibimos: [%s:%i] %s\n",ip,clientPort,buffer);
-
-status = sendto(udpSocket,buffer,255,0,(struct sockaddr*)&broadcastAddr, sizeof(broadcastAddr));
-//printf("enviando:%s\n",buffer);
-    fflush(stdout);
-
-
-}
-
-close(udpSocket);
-
+    strcpy(buffer,"EOF");
+    sendto(serversock,buffer,sizeof(buffer),0,(struct sockaddr *)&client,n);
+	printf("File sent succesfully\n");
 return 0;
-
 }

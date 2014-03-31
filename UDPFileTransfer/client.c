@@ -1,70 +1,56 @@
-#include <stdio.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
+#include<stdio.h>
+#include<string.h>
+#include<sys/stat.h>
+#include<sys/socket.h>
+#include<sys/types.h>
+#include<netinet/in.h>
+#include<arpa/inet.h>
+#include<fcntl.h>
+#include<stdlib.h>
 
-int main(int argc, char *argv[])
+int main(int args, char *argv[])
 {
-    int bcSock;
-    struct sockaddr_in broadcastAddr;
-struct sockaddr_in udpServer, udpClient;
-socklen_t addrlen = sizeof(udpClient);
-    char *broadcastIP;
-    unsigned short broadcastPort;
-    char *buffer;
-    char *sendString;
-    
-    int broadcastPermission;
-    unsigned int sendStringLen;
 
-int status;
-int i;
+    struct sockaddr_in server,client;
+    int s,n,ret;size_t fp;
+	int port;
+    char filename[20],copy[20],filedata[100],c[25], addr[16];
+	
+	if(args < 3) {
+	fprintf(stderr,"Error: Missing Arguments\n");
+	fprintf(stderr,"\tUSE: Address Port FileName SaveName\n");
 
-    if (argc < 4)
+	return 1;
+	}
+	strcpy(addr, argv[1]);
+
+	port = atoi(argv[2]);
+    mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
+    s=socket(AF_INET,SOCK_DGRAM,0);
+    server.sin_family=AF_INET;
+    server.sin_port= port;
+    server.sin_addr.s_addr=inet_addr(addr);
+    n=sizeof(server);
+	strcpy(filename, argv[3]);    
+	strcpy(copy, argv[4]);
+    //printf("\nDescargando...\n");
+    sendto(s,filename,sizeof(filename),0,(struct sockaddr *)&server,n);
+    fp =open(copy, O_WRONLY | O_CREAT | O_TRUNC, mode);
+    if(fp==-1)
     {
-        fprintf(stderr,"Usage: %s <IP Address> <Port> <Send String>\n", argv[0]);
-        exit(1);
+        printf("\nError file not found\n");
+        exit(0);
     }
-
-    broadcastIP = argv[1]; /* First arg: broadcast IP address */
-    broadcastPort = atoi(argv[2]); /* Second arg: broadcast port */
-    sendString = argv[3]; /* Third arg: string to broadcast */
-
-bcSock = socket(PF_INET,SOCK_DGRAM,IPPROTO_UDP);
-if(bcSock == -1) {
-fprintf(stderr,"Can't create Socket");
-return 1;
-}
-  
-    broadcastPermission = 1;
-    status = setsockopt(bcSock, SOL_SOCKET, SO_BROADCAST, (void *) &broadcastPermission, sizeof(broadcastPermission));
-    if(status == -1) {
-fprintf(stderr,"Can't set Brodcast Option");
-return 1;
+	printf("File found, downloading file\n");
+    recvfrom(s,filedata,sizeof(filedata),0,NULL,NULL);
+    while(1)
+    {
+        if(strcmp(filedata,"EOF")==0)
+            break;
+        ret=write(fp,filedata,strlen(filedata));
+        bzero(filedata,100);
+        recvfrom(s,filedata,sizeof(filedata),0,NULL,NULL);
     }
-
-    memset(&broadcastAddr, 0, sizeof(broadcastAddr));
-    broadcastAddr.sin_family = AF_INET;
-inet_pton(AF_INET,broadcastIP,&broadcastAddr.sin_addr.s_addr);
-    broadcastAddr.sin_port = htons(broadcastPort);
-
-    sendStringLen = strlen(sendString);
-buffer = (char*)calloc(255,sizeof(char));
-status = sendto(bcSock,sendString,sendStringLen,0,(struct sockaddr*)&broadcastAddr, sizeof(broadcastAddr));
-printf("Send %i bytes to brodcast addr\n",status);
-//printf("esperando respuesta\n");
-
-status = recvfrom(bcSock, buffer, 255, 0, (struct sockaddr*)&udpClient, &addrlen );
-fflush(stdout);
-printf("Recibimos: %s\n",buffer);
-sendString =("dos");
-status = sendto(bcSock,sendString,sendStringLen,0,(struct sockaddr*)&broadcastAddr, sizeof(broadcastAddr));
-status = recvfrom(bcSock, buffer, 255, 0, (struct sockaddr*)&udpClient, &addrlen );
-
-fflush(stdout);
-printf("Recibimos: %s\n",buffer);
-
-
+    printf("\nDownload finished\n");
+return 0;
 }

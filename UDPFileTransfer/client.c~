@@ -1,103 +1,57 @@
-/*Client.c*/
+#include<stdio.h>
+#include<string.h>
+#include<sys/stat.h>
+#include<sys/socket.h>
+#include<sys/types.h>
+#include<netinet/in.h>
+#include<arpa/inet.h>
+#include<fcntl.h>
+#include<stdlib.h>
 
+int main(int args, char *argv[])
+{
 
-#include <stdio.h>
-#include <stdarg.h>
-#include <arpa/inet.h>
-#include <sys/socket.h>
-#include <string.h>
+    struct sockaddr_in server,client;
+    int s,n,ret;size_t fp;
+	int port;
+    char filename[20],copy[20],filedata[100],c[25], addr[16];
+	
+	if(args < 3) {
+	fprintf(stderr,"Error: Missing Arguments\n");
+	fprintf(stderr,"\tUSE: Address Port FileName SaveName\n");
 
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/uio.h>
-#include <stdlib.h>
+	return 1;
+	}
+	strcpy(addr, argv[1]);
 
-#include <sys/time.h>
-long currentTimeMillis() ;
-
-int main(int argc, char* argv[]) {
-
-int udpSocket;
-struct sockaddr_in udpServer, udpClient;
-socklen_t addrlen = sizeof(udpClient),len;
-int status;
-char buffer[255] = "";
-int i;
-int option;
-int fd;
-int contador=0;
-long start, end;
-char ip[17];
-u_short clientPort;
-char *tok;
-int fileSize;
-
-int totalReadBytes, readBytes;
-char fileBuffer[10240];
-int writeBytes;
-
-//Creamos el Socket
-udpSocket = socket(AF_INET, SOCK_DGRAM, 0);
-if(udpSocket == -1) {
-fprintf(stderr,"Can't create UDP Socket");
-return 1;
-}
-
-udpServer.sin_family = AF_INET;
-inet_pton(AF_INET,"127.0.0.1",&udpServer.sin_addr.s_addr);
-udpServer.sin_port = htons(5000);
-
-status = sendto(udpSocket,argv[1],strlen(argv[1]),0,(struct sockaddr*)&udpServer, sizeof(udpServer));
-bzero(buffer,255);
-status = recvfrom(udpSocket, buffer, 255, 0, (struct sockaddr*)&udpClient, &addrlen );
-
-inet_ntop(AF_INET,&(udpClient.sin_addr),ip,INET_ADDRSTRLEN);
-clientPort = ntohs(udpClient.sin_port);
-
-printf("Recibimos: [%s:%i] %s",ip,clientPort,buffer);
-
-tok = strtok(buffer," ");
-if(strcmp(tok,"READY")!=0) {
-fprintf(stderr,"El server nos mando algo raro...\n");
-return -1;
-}
-
-tok = strtok(NULL," ");
-fileSize = atoi(tok);
-
-fd = open(argv[2],O_WRONLY | O_CREAT | O_TRUNC);
-if(fd == -1) {
-fprintf(stderr, "Cant creat the file");
-return -1;
-}
-
-status = sendto(udpSocket,"OK",strlen("OK"),0,(struct sockaddr*)&udpServer, sizeof(udpServer));
-
-totalReadBytes = 0;
-while(totalReadBytes < fileSize) {
-readBytes = recvfrom(udpSocket,fileBuffer,10240,0,(struct sockaddr*)&udpClient, &addrlen );
-while(writeBytes < readBytes) {
-writeBytes += write(fd,fileBuffer+writeBytes,readBytes-writeBytes);
-}
-totalReadBytes += writeBytes;
-}
-
-close(fd);
-
-bzero(buffer,255);
-status = recvfrom(udpSocket, buffer, 255, 0, (struct sockaddr*)&udpClient, &addrlen );
-
-printf("Recibimos: [%s:%i] %s",ip,clientPort,buffer);
-
-close(udpSocket);
-
+	port = atoi(argv[2]);
+    mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
+    s=socket(AF_INET,SOCK_DGRAM,0);
+    server.sin_family=AF_INET;
+    server.sin_port= port;
+    server.sin_addr.s_addr=inet_addr(addr);
+    n=sizeof(server);
+	strcpy(filename, argv[3]);    
+	strcpy(copy, argv[4]);
+    //printf("\nDescargando...\n");
+    sendto(s,filename,sizeof(filename),0,(struct sockaddr *)&server,n);
+    fp =open(copy, O_WRONLY | O_CREAT | O_TRUNC, mode);
+    if(fp==-1)
+    {
+        printf("\nError file not found");
+        exit(0);
+    }
+	printf("File found, downloading file");
+    recvfrom(s,filedata,sizeof(filedata),0,NULL,NULL);
+    while(1)
+    {
+        if(strcmp(filedata,"EOF")==0)
+            break;
+    printf("%s",filedata);
+        ret=write(fp,filedata,strlen(filedata));
+        bzero(filedata,100);
+        recvfrom(s,filedata,sizeof(filedata),0,NULL,NULL);
+    }
+    printf("\nDownload finished\n");
 return 0;
-}
-
-long currentTimeMillis() {
-        long t;
-        struct timeval tv;
-        gettimeofday(&tv, 0);
-        t = (tv.tv_sec*1000)+tv.tv_usec;
-        return t;
 }
