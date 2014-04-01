@@ -57,7 +57,7 @@ printf("Send %i bytes to brodcast addr\n",status);
 
 	while(1)
 	{
-		status = recvfrom(bcSock, buffer, 255, 0, (struct sockaddr*)&udpClient, &addrlen );
+		status = recvfrom(bcSock, buffer, 255, 0, (struct sockaddr*)&broadcastAddr, &addrlen );
 		fflush(stdout);
 		printf("Recibimos: %s\n",buffer);
 	}
