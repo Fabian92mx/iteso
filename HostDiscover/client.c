@@ -35,6 +35,7 @@ return 1;
 fprintf(stderr,"Can't bind");
     }
 
+char *name = "Chinga tu madre, puto";
 
 while(1) {
 bzero(buffer,255);
@@ -45,7 +46,10 @@ clientPort = ntohs(udpClient.sin_port);
 
 printf("Recibimos: [%s:%i] %s\n",ip,clientPort,buffer);
 
-    fflush(stdout);
+fflush(stdout);
+
+status = sendto(udpSocket, name, strlen(name), 0, (struct sockaddr*)&udpClient, addrlen);
+
 }
 
 close(udpSocket);

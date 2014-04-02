@@ -81,7 +81,7 @@ fprintf(stderr,"Can't bind");
     memset(&broadcastAddr, 0, sizeof(broadcastAddr));
     broadcastAddr.sin_family = AF_INET;
     broadcastAddr.sin_addr.s_addr = inet_addr(broadcastIP);
-    broadcastAddr.sin_port = htons(3000);
+    broadcastAddr.sin_port = htons(5000);
 
 pthread_create(&sender, NULL, sendMessages, NULL);
 pthread_create(&receiver, NULL, receiveMessages, NULL);
