@@ -5,73 +5,55 @@
 #include <string.h>
 #include <unistd.h>
 
-int main(int argc, char *argv[])
-{
-    int bcSock;
-    struct sockaddr_in broadcastAddr;
+int main(int argc, char* argv[]) {
+
+int udpSocket;
 struct sockaddr_in udpServer, udpClient;
+
 socklen_t addrlen = sizeof(udpClient);
-    char *broadcastIP;
-    unsigned short broadcastPort;
-    char *buffer;
-    char *sendString;
-    
-    int broadcastPermission;
-    unsigned int sendStringLen;
+char buffer[255];
+char ip[17];
+u_short clientPort;
+
 
 int status;
-int i;
 
-    if (argc < 4)
-    {
-        fprintf(stderr,"Usage: %s <IP Address> <Port> <Send String>\n", argv[0]);
-        exit(1);
-    }
-
-    broadcastIP = argv[1]; /* First arg: broadcast IP address */
-    broadcastPort = atoi(argv[2]); /* Second arg: broadcast port */
-    sendString = argv[3]; /* Third arg: string to broadcast */
-
-bcSock = socket(PF_INET,SOCK_DGRAM,IPPROTO_UDP);
-if(bcSock == -1) {
-fprintf(stderr,"Can't create Socket");
+//Creamos el Socket
+udpSocket = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
+if(udpSocket == -1) {
+fprintf(stderr,"Can't create UDP Socket");
 return 1;
 }
-  
-    broadcastPermission = 1;
-    status = setsockopt(bcSock, SOL_SOCKET, SO_BROADCAST, (void *) &broadcastPermission, sizeof(broadcastPermission));
-    if(status == -1) {
-fprintf(stderr,"Can't set Brodcast Option");
-return 1;
+
+    udpServer.sin_family = AF_INET;
+    inet_pton(AF_INET,"0.0.0.0",&udpServer.sin_addr.s_addr);
+    udpServer.sin_port = htons(5000);
+
+    status = bind(udpSocket, (struct sockaddr*)&udpServer,sizeof(udpServer));
+
+    if(status != 0) {
+fprintf(stderr,"Can't bind");
     }
 
-	memset(&broadcastAddr, 0, sizeof(broadcastAddr));
-    broadcastAddr.sin_family = AF_INET;
-inet_pton(AF_INET,broadcastIP,&broadcastAddr.sin_addr.s_addr);
-    broadcastAddr.sin_port = htons(broadcastPort);
+char *name = "Chinga tu madre, puto";
 
-sendStringLen = strlen(sendString);
-buffer = (char*)calloc(255,sizeof(char));
-status = sendto(bcSock,sendString,sendStringLen,0,(struct sockaddr*)&broadcastAddr, sizeof(broadcastAddr));
-printf("Send %i bytes to brodcast addr\n",status);
+while(1) {
+bzero(buffer,255);
+status = recvfrom(udpSocket, buffer, 255, 0, (struct sockaddr*)&udpClient, &addrlen );
 
-	while(1)
-	{
-		status = recvfrom(bcSock, buffer, 255, 0, (struct sockaddr*)&broadcastAddr, &addrlen );
-		fflush(stdout);
-		printf("Recibimos: %s\n",buffer);
-	}
+inet_ntop(AF_INET,&(udpClient.sin_addr),ip,INET_ADDRSTRLEN);
+clientPort = ntohs(udpClient.sin_port);
 
-
-    
-
-//printf("esperando respuesta\n");
-sendString =("dos");
-status = sendto(bcSock,sendString,sendStringLen,0,(struct sockaddr*)&broadcastAddr, sizeof(broadcastAddr));
-status = recvfrom(bcSock, buffer, 255, 0, (struct sockaddr*)&udpClient, &addrlen );
+printf("Recibimos: [%s:%i] %s\n",ip,clientPort,buffer);
 
 fflush(stdout);
-printf("Recibimos: %s\n",buffer);
 
+status = sendto(udpSocket, name, strlen(name), 0, (struct sockaddr*)&udpClient, addrlen);
+
+}
+
+close(udpSocket);
+
+return 0;
 
 }

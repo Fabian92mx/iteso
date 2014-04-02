@@ -35,7 +35,7 @@ return 1;
 fprintf(stderr,"Can't bind");
     }
 
-char *name = "Chinga tu madre, puto";
+char *name = "Respuesta";
 
 while(1) {
 bzero(buffer,255);
