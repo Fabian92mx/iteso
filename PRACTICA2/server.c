@@ -91,6 +91,7 @@ void *tcp_service(void *arg)
 	
 	printf("Conexion establecida\n");
 	//esperar comando
+	
 	//atender comando
 	//desconectar
 }

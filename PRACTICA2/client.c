@@ -51,7 +51,7 @@ void *sendMessages(void *arg)
 	//strcat(myStats, "\n\r\n\r");
 	strcat(myStats, "\0");
 	printf(myStats);
-	for(i = 0;i<1;i++)
+	for(i = 0;i<10;i++)
 	{
 		//printf("Enviando Mensaje\n");
 		status = sendto(udpSocket ,myStats ,strlen(myStats),0,(struct sockaddr*)&broadcastAddr, sizeof(broadcastAddr));
@@ -80,97 +80,109 @@ void *receiveMessages(void *arg)
 	pthread_exit(NULL);
 }
 
+
+
+
+
 int main(int argc, char* argv[])
 {
-int server;
-struct sockaddr_in server_addr;
-if (argc < 2)
-{
-	fprintf(stderr,"Usage: %s <broadcastIP>\n", argv[0]);
-	exit(1);
-}
+	int server;
+	char file[25];
+	char *filePath;
+	struct sockaddr_in server_addr;
+	if (argc < 2)
+	{
+		fprintf(stderr,"Usage: %s <broadcastIP>\n", argv[0]);
+		exit(1);
+	}
 
-broadcastIP = argv[1];
-//Creamos el Socket
-udpSocket = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
-if(udpSocket == -1) {
-fprintf(stderr,"Can't create UDP Socket");
-return 1;
-}
+	broadcastIP = argv[1];
+	//Creamos el Socket
+	udpSocket = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	if(udpSocket == -1) {
+		fprintf(stderr,"Can't create UDP Socket");
+		return 1;
+	}
 
-    udpServer.sin_family = AF_INET;
-    inet_pton(AF_INET,"0.0.0.0",&udpServer.sin_addr.s_addr);
-    udpServer.sin_port = htons(3000);
+	    udpServer.sin_family = AF_INET;
+	    inet_pton(AF_INET,"0.0.0.0",&udpServer.sin_addr.s_addr);
+	    udpServer.sin_port = htons(3000);
 
-    status = bind(udpSocket, (struct sockaddr*)&udpServer,sizeof(udpServer));
+	    status = bind(udpSocket, (struct sockaddr*)&udpServer,sizeof(udpServer));
 
-    broadcastPermission = 1;
-    status = setsockopt(udpSocket, SOL_SOCKET, SO_BROADCAST, (void *) &broadcastPermission, sizeof(broadcastPermission));
+	    broadcastPermission = 1;
+	    status = setsockopt(udpSocket, SOL_SOCKET, SO_BROADCAST, (void *) &broadcastPermission, sizeof(broadcastPermission));
 
-    if(status != 0) {
-fprintf(stderr,"Can't bind");
-    }
-    memset(&broadcastAddr, 0, sizeof(broadcastAddr));
-    broadcastAddr.sin_family = AF_INET;
-    broadcastAddr.sin_addr.s_addr = inet_addr(broadcastIP);
-    broadcastAddr.sin_port = htons(5000);
+	    if(status != 0) {
+			fprintf(stderr,"Can't bind");
+	    }
+	    memset(&broadcastAddr, 0, sizeof(broadcastAddr));
+	    broadcastAddr.sin_family = AF_INET;
+	    broadcastAddr.sin_addr.s_addr = inet_addr(broadcastIP);
+	    broadcastAddr.sin_port = htons(5000);
 
-pthread_create(&sender, NULL, sendMessages, NULL);
-pthread_create(&receiver, NULL, receiveMessages, NULL);
+	pthread_create(&sender, NULL, sendMessages, NULL);
+	pthread_create(&receiver, NULL, receiveMessages, NULL);
 
-//
-sleep(3);
+	//
+	sleep(10);
 
-	pthread_cancel(receiver);
-	char ip[17],temp[10];
-	int puerto;
-	printf("Selecciona a que IP te quieres conectar: ");
-	gets(ip);
-fflush(stdin);
-	printf("Selecciona a que puerto: ");
-	fgets(temp,10,stdin);
-	puerto = atoi(temp);
-	printf("ip: %s Num puerto: %d\n",ip,puerto);
-//connect
+		pthread_cancel(receiver);
+		char ip[17],temp[10];
+		int puerto;
+		printf("Selecciona a que IP te quieres conectar: ");
+		gets(ip);
+		fflush(stdin);
+		printf("Selecciona a que puerto: ");
+		fgets(temp,10,stdin);
+		puerto = atoi(temp);
+		printf("ip: %s Num puerto: %d\n",ip,puerto);
+	//connect
 
-struct sockaddr_in dest;
+	struct sockaddr_in dest;
 
-bzero(&dest,sizeof(dest));
-dest.sin_family = AF_INET;	
-status = inet_pton(AF_INET,ip,&dest.sin_addr.s_addr);
-dest.sin_port = htons(5000);
+	bzero(&dest,sizeof(dest));
+	dest.sin_family = AF_INET;	
+	status = inet_pton(AF_INET,ip,&dest.sin_addr.s_addr);
+	dest.sin_port = htons(5000);
 
-printf("enviando connect\n");
-	status = sendto(udpSocket ,"Connect" ,strlen("Connect"),0,(struct sockaddr*)&dest, sizeof(dest));
-printf("enviado Connect\n");
-printf("esperando respuesta\n");
-	bzero(&buffer,255);
-status = recvfrom(udpSocket, buffer, 255, 0, (struct sockaddr*)&udpClient, &addrlen );
-printf("\nnos enviaron: %s\nalgo\n",buffer);
-printf("abriendo socket");
-server = socket(PF_INET,SOCK_STREAM,0);
-if(server == -1) {
-	fprintf(stderr, "Error: %s\n",strerror(errno));
-	return 1;
-}
+	printf("enviando connect\n");
+		status = sendto(udpSocket ,"Connect" ,strlen("Connect"),0,(struct sockaddr*)&dest, sizeof(dest));
+	printf("enviado Connect\n");
+	printf("esperando respuesta\n");
+		bzero(&buffer,255);
+	status = recvfrom(udpSocket, buffer, 255, 0, (struct sockaddr*)&udpClient, &addrlen );
+	printf("\nnos enviaron: %s\n",buffer);
+	printf("abriendo socket\n");
 
-bzero(&server_addr,sizeof(server_addr));
-server_addr.sin_family = AF_INET;	
-status = inet_pton(AF_INET,ip,&server_addr.sin_addr.s_addr);
-server_addr.sin_port = htons(puerto);
-printf("socket configurado, durmiendo 3");
-sleep(3);
-printf("Listo para conectar");
-//while(1);
-status = connect(server,(struct sockaddr *)&server_addr,sizeof(server_addr));
+	server = socket(PF_INET,SOCK_STREAM,0);
+	if(server == -1) {
+		fprintf(stderr, "Error: %s\n",strerror(errno));
+		return 1;
+	}
+	printf("socket abierto\n");
+	bzero(&server_addr,sizeof(server_addr));
+	server_addr.sin_family = AF_INET;	
+	status = inet_pton(AF_INET,ip,&server_addr.sin_addr.s_addr);
+	server_addr.sin_port = htons(puerto);
+	printf("socket configurado, durmiendo 3\n");
+	sleep(3);
+	printf("Listo para conectar\n");
+	//while(1);
+	status = connect(server,(struct sockaddr *)&server_addr,sizeof(server_addr));
 
-printf("conectado");
+	printf("Conectado\n");
+	//comandos
+	printf("File to get:");
+	gets(file);
+	printf("\nFile: %s\n",file);
+	bzero(buffer, 255);
 
 
-//
-while(1);
-close(udpSocket);
+	//terminar
+	while(1);
+	close(udpSocket);
 
-return 0;
+	return 0;
 
 }
