@@ -152,7 +152,8 @@ int main(int argc, char *argv[])
 	strcat(myStats, "\n\r");
 	strcat(myStats, "Puerto: ");
 	strcat(myStats, charTcpPort);
-	strcat(myStats, " Archivos: ");
+	strcat(myStats, "\n\r");
+	strcat(myStats, "Archivos: ");
 	char numArchivos[3];
 	snprintf(numArchivos, 3, "%d", getFileCount());
 	strcat(myStats, numArchivos);
