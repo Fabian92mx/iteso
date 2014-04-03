@@ -27,7 +27,7 @@ return 1;
 
     udpServer.sin_family = AF_INET;
     inet_pton(AF_INET,"0.0.0.0",&udpServer.sin_addr.s_addr);
-    udpServer.sin_port = htons(5000);
+    udpServer.sin_port = htons(5001);
 
     status = bind(udpSocket, (struct sockaddr*)&udpServer,sizeof(udpServer));
 
@@ -35,7 +35,7 @@ return 1;
 fprintf(stderr,"Can't bind");
     }
 
-char *name = "Chinga tu madre, puto";
+char *name = "Respuesta";
 
 while(1) {
 bzero(buffer,255);

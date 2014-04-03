@@ -14,9 +14,9 @@ int main(int args, char *argv[])
     struct sockaddr_in server,client;
     int s,n,ret;size_t fp;
 	int port;
-    char filename[20],copy[20],filedata[100],c[25], addr[16];
+    char filename[20],copy[20],data[100],c[25], addr[16];
 	
-	if(args < 3) {
+	if(args < 5) {
 	fprintf(stderr,"Error: Missing Arguments\n");
 	fprintf(stderr,"\tUSE: Address Port FileName SaveName\n");
 
@@ -42,14 +42,14 @@ int main(int args, char *argv[])
         exit(0);
     }
 	printf("File found, downloading file\n");
-    recvfrom(s,filedata,sizeof(filedata),0,NULL,NULL);
+    recvfrom(s,data,sizeof(filedata),0,NULL,NULL);
     while(1)
     {
-        if(strcmp(filedata,"EOF")==0)
+        if(strcmp(data,"EOF")==0)
             break;
-        ret=write(fp,filedata,strlen(filedata));
-        bzero(filedata,100);
-        recvfrom(s,filedata,sizeof(filedata),0,NULL,NULL);
+        ret=write(fp,data,strlen(filedata));
+        bzero(data,100);
+        recvfrom(s,data,sizeof(filedata),0,NULL,NULL);
     }
     printf("\nDownload finished\n");
 return 0;
