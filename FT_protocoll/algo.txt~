@@ -1,0 +1,16 @@
+//verifica existencia de archivo y su tamano
+file = open(filePath, O_RDONLY);
+
+if(file == -1)
+{
+	//envia file not found
+	printf("COULDNT OPEN FILE\n");
+	writeBytes = 0;
+	length = strlen(ERROR_NOT_FOUND);
+	printf("Enviando %s al cliente\n", ERROR_NOT_FOUND);
+	while(writeBytes < length)
+	{
+		writeBytes = write(client, ERROR_NOT_FOUND + writeBytes, length - writeBytes);
+		printf("Se escribieron %i bytes de %i al cliente\n", writeBytes, length);
+	}
+}else
