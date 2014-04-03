@@ -8,6 +8,14 @@
 
 #define msg	"Is there anybody out there"
 
+typedef struct
+{
+	int id;
+	char ip[17];
+	int port;
+	char name [30];
+} serverList;
+
 int udpSocket;
 struct sockaddr_in udpServer, udpClient;
 
@@ -24,11 +32,12 @@ int status;
 
 void *sendMessages(void *arg)
 {
-	while(1)
+	int i;
+	for(i = 0;i<10;i++)
 	{
 		printf("Enviando Mensaje\n");
 		status = sendto(udpSocket ,msg ,strlen(msg),0,(struct sockaddr*)&broadcastAddr, sizeof(broadcastAddr));
-		sleep(10);
+		sleep(1);
 	}
 	pthread_exit(NULL);
 }
@@ -37,15 +46,18 @@ void *receiveMessages(void *arg)
 {
 	while(1)
 	{
-		sleep(1);
+		//sleep(1);
 		printf("Esperando recibir mensaje\n");
 		status = recvfrom(udpSocket, buffer, 255, 0, (struct sockaddr*)&udpClient, &addrlen );
 
 		inet_ntop(AF_INET,&(udpClient.sin_addr),ip,INET_ADDRSTRLEN);
 		clientPort = ntohs(udpClient.sin_port);
 
-		printf("Recibimos: [%s:%i] %s\n",ip,clientPort,buffer);
+		printf("Servidor: [%s:%i] %s\n",ip,clientPort,buffer);
+		//Agregar a la lista
+		
 	}
+	//Imprimir lista
 	pthread_exit(NULL);
 }
 
