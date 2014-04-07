@@ -44,19 +44,19 @@ void *sendMessages(void *arg)
 	//char name;
 	char myStats[255];
 	myStats[0] = '\0';
-	strcat(myStats, "Hello from: Client\n\r\n\r");	
+	strcat(myStats, "Hello from: Fabian\n\r\n\r");	
 	//name = getName();
 	//strcat(myStats, "Hello from: ");
 	//strcat(myStats, name);
 	//strcat(myStats, "\n\r\n\r");
 	strcat(myStats, "\0");
 	printf(myStats);
-	for(i = 0;i<10;i++)
-	{
+	//for(i = 0;i<2;i++)
+	//{
 		//printf("Enviando Mensaje\n");
 		status = sendto(udpSocket ,myStats ,strlen(myStats),0,(struct sockaddr*)&broadcastAddr, sizeof(broadcastAddr));
 		sleep(1);
-	}
+	//}
 	pthread_exit(NULL);
 }
 
@@ -87,9 +87,10 @@ void *receiveMessages(void *arg)
 int main(int argc, char* argv[])
 {
 	int server;
-	char file[25];
+	char comando[50];
 	char *filePath;
 	struct sockaddr_in server_addr;
+	socklen_t tcp_len = sizeof(server_addr);
 	if (argc < 2)
 	{
 		fprintf(stderr,"Usage: %s <broadcastIP>\n", argv[0]);
@@ -125,7 +126,7 @@ int main(int argc, char* argv[])
 	pthread_create(&receiver, NULL, receiveMessages, NULL);
 
 	//
-	sleep(10);
+	sleep(4);
 
 		pthread_cancel(receiver);
 		char ip[17],temp[10];
@@ -137,6 +138,7 @@ int main(int argc, char* argv[])
 		fgets(temp,10,stdin);
 		puerto = atoi(temp);
 		printf("ip: %s Num puerto: %d\n",ip,puerto);
+		bzero(temp, 10);
 	//connect
 
 	struct sockaddr_in dest;
@@ -173,10 +175,48 @@ int main(int argc, char* argv[])
 
 	printf("Conectado\n");
 	//comandos
-	printf("File to get:");
-	gets(file);
-	printf("\nFile: %s\n",file);
-	bzero(buffer, 255);
+	while(1)
+	{
+		bzero(comando, 50);
+		printf("\nIngresa un comando:");
+		gets(comando);
+		strcat(comando, "\r\n");
+		//printf("\nComando %s\n",comando);
+		status = write(server, comando, strlen(comando));
+
+	
+		//Casos de respuesta según comando
+		if(strcmp(comando,"PING\r\n")==0)
+		{
+			bzero(comando, 50);
+			printf("Esperando respuesta\n");
+			status = recvfrom(server, comando, 255, 0,(struct sockaddr *)&server_addr,&tcp_len);
+			//status = read(server, comando, 18);	
+			printf("Recibido: %s\n",comando);
+			bzero(comando,50);
+		}
+		else if(strcmp(comando,"FILELIST\r\n")==0)
+		{
+		
+		}
+		else if(strcmp(comando,"GETFILE\r\n")==0)
+		{
+		
+		}
+		else if(strcmp(comando,"GETFILEPART\r\n")==0)
+		{
+			
+		}
+		else if(strcmp(comando,"GETFILESIZE\r\n")==0)
+		{
+			
+		}
+		else
+		{
+			printf("Comando no valido.\n");		
+		}
+	sleep(1);
+	}
 
 
 	//terminar

@@ -44,6 +44,9 @@ int getFileCount()
 
 void *tcp_service(void *arg)
 {
+	char * TCPbuffer;
+	char comando [255];
+	char respuesta [255];
 	printf("Iniciando conexion\n");
 	struct sockaddr_in clientAddress;
 	socklen_t clienteLen;
@@ -92,7 +95,51 @@ void *tcp_service(void *arg)
 	printf("Conexion establecida\n");
 	//esperar comando
 	
-	//atender comando
+	while(1)
+	{
+	//Leer comando
+		//Entrar en modo escucha
+		printf("\nEsperando comando\n");
+		bzero(comando, 255);
+		status = read(client,comando,255);
+		//Leer comando
+	//Case comando
+		if(strcmp(comando,"PING\r\n")==0)
+		{
+			printf("Leí ping\nEnviando respuesta\n");
+			strcat(respuesta, "OK ");
+			strcat(respuesta, comando);
+			strcat(respuesta, " \r\n\r\n");
+			strcat(respuesta, "PONG");
+			status = send(client,respuesta,strlen(respuesta),0);
+
+			printf("\nEnviado:\n %s",respuesta);
+			bzero(respuesta,255);
+
+		}
+		else if(strcmp(comando,"FILELIST\r\n")==0)
+		{
+			printf("Leí file list\nEnviando respuesta\n");
+		}
+		else if(strcmp(comando,"GETFILE\r\n")==0)
+		{
+			printf("Leí get file\nEnviando respuesta\n");
+		}
+		else if(strcmp(comando,"GETFILEPART\r\n")==0)
+		{
+			printf("Leí get file part\nEnviando respuesta\n");
+		}
+		else if(strcmp(comando,"GETFILESIZE\r\n")==0)
+		{
+			printf("Leí get file size\nEnviando respuesta\n");
+		}
+		else
+		{
+			printf("Comando no valido\n");
+		}
+
+
+	}
 	//desconectar
 }
 
@@ -179,7 +226,7 @@ int main(int argc, char *argv[])
 			printf("Respondiendo mensaje de hostDiscovery\n");
 			status = sendto(hdiscSocket , myStats ,strlen(myStats),0,(struct sockaddr*)&UDP_Client, sizeof(UDP_Client));
 
-		}else if(buffer[0] == 'C')//si es de conexion TCP
+		}else if(buffer[0] == 'C') //si es de conexion TCP
 		{
 			sleep(10);
 			//avisar que okas
