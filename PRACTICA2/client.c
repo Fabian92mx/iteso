@@ -207,15 +207,13 @@ int main(int argc, char* argv[])
 
 			bzero(no,3);
 			bzero(filenme,200);
-			status = recv(server, no, 3, 0);
+			status = recvfrom(server, no, 3, 0, (struct sockaddr *) &server_addr, &tcp_len);
 			arch = atoi(no);
-			printf("cantidad de archivos: %d\n", arch);	
-
-			status = recv(server, filenme,strlen(filenme), 0);
-			printf("%s\n",filenme);
+			printf("cantidad de archivos: %d\n", arch);
+			sleep(1);
+			status = recvfrom(server, filenme, 200, 0, (struct sockaddr *) &server_addr, &tcp_len);
+			printf("%s\r\n",filenme);
 			bzero(filenme,200);
-
- 	
 		}
 		else if(strcmp(comando,"GETFILE\r\n")==0)
 		{
