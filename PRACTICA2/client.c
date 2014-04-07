@@ -91,6 +91,9 @@ int main(int argc, char* argv[])
 	char file [20];
 	char *filePath;
 	int i = 0;
+	char no [3];
+	char filenme [200];
+	int arch = 0;
 	struct sockaddr_in server_addr;
 	socklen_t tcp_len = sizeof(server_addr);
 	if (argc < 2)
@@ -201,18 +204,17 @@ int main(int argc, char* argv[])
 		else if(strcmp(comando,"FILELIST\r\n")==0)
 		{
 			status = write(server, comando, strlen(comando));
-			char no [3];
-			char filenme [200];
-			int arch = 0;
+
+			bzero(no,3);
+			bzero(filenme,200);
 			status = recv(server, no, 3, 0);
 			arch = atoi(no);
 			printf("cantidad de archivos: %d\n", arch);	
-			for(i=0;i<arch;i++)
-			{
+
 			status = recv(server, filenme,strlen(filenme), 0);
 			printf("%s\n",filenme);
 			bzero(filenme,200);
-			}
+
  	
 		}
 		else if(strcmp(comando,"GETFILE\r\n")==0)

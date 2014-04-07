@@ -139,12 +139,12 @@ void *tcp_service(void *arg)
 
 			    while (ep = readdir (dp))
 				{			      
-				strcpy(filename,ep->d_name);
-				printf("%s\n",filename);
-				status = send(client,filename,strlen(filename),0);
-				bzero(filename,200);
+				strcat(filename,ep->d_name);
+				strcat(filename,"\r\n");
 				}
-				
+				status = send(client,filename,strlen(filename),0);
+				printf("%s\n",filename);
+				bzero(filename,200);
 			    (void) closedir (dp);
 
 
