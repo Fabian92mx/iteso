@@ -48,12 +48,13 @@ void *tcp_service(void *arg)
 	char comando [255];
 	char respuesta [255];
 	int i = 0;
-	printf("Iniciando conexion\n");
+	int tcpstatus;
+	printf("Iniciando thread de conexion\n");
 	struct sockaddr_in clientAddress;
 	socklen_t clienteLen;
 	int client;
-
-	memcpy(arg, &clientAddress, sizeof(clientAddress));
+	
+	bzero(&clientAddress,sizeof(clientAddress));
 	
 	//hacer conexion TCP con cliente solicitante
 	tcpSocket = socket(PF_INET,SOCK_STREAM,0);
@@ -84,91 +85,97 @@ void *tcp_service(void *arg)
 		pthread_exit(NULL);
 	}
 	
-	bzero(&clientAddress,sizeof(clientAddress));
-	client = accept(tcpSocket,(struct sockaddr *)&clientAddress,&clienteLen);
-	if(client == -1)
-	{
-		fprintf(stderr,"Error acepting conection %s\n",strerror(errno));
-		close(tcpSocket);
-		pthread_exit(NULL);
-	}
-	
-	printf("Conexion establecida\n");
-	//esperar comando
-	
 	while(1)
 	{
-	//Leer comando
-		//Entrar en modo escucha
-		printf("\nEsperando comando\n");
-		bzero(comando, 255);
-		//Leer Comando
-		status = read(client,comando,255);
-		//Separar comando en tokens
-		
-		
-	//Case comando
-		if(strcmp(comando,"PING\r\n")==0)
+	
+		client = accept(tcpSocket,(struct sockaddr *)&clientAddress,&clienteLen);
+		if(client == -1)
 		{
-			bzero(respuesta,255);
-			printf("Leí ping\nEnviando respuesta\n");
-			strcat(respuesta, "OK ");
-			strcat(respuesta, comando);
-			strcat(respuesta, " \r\n\r\n");
-			strcat(respuesta, "PONG");
-			status = send(client,respuesta,strlen(respuesta),0);
-
-			printf("\nEnviado:\n %s",respuesta);
-			bzero(respuesta,255);
-
+			fprintf(stderr,"Error acepting conection %s\n",strerror(errno));
+			close(tcpSocket);
+			pthread_exit(NULL);
 		}
-		else if(strcmp(comando,"FILELIST\r\n")==0)
+	
+		printf("Conexion establecida\n");
+		//esperar comando
+		tcpstatus = 0;
+		while(tcpstatus >= 0)
 		{
-			printf("Leí file list\nEnviando respuesta\n");
-			char fileno [3];
-			int number;
-			snprintf(fileno, 3, "%d", getFileCount());
-			number = atoi(fileno);
-			status = send(client,fileno,strlen(fileno),0);
+		//Leer comando
+			//Entrar en modo escucha
+			printf("\nEsperando comando\n");
+			bzero(comando, 255);
+			//Leer Comando
+			tcpstatus = read(client,comando,255);
+			//Separar comando en tokens
+		
+		
+		//Case comando
+			if(strcmp(comando,"PING\r\n")==0)
+			{
+				bzero(respuesta,255);
+				printf("Leí ping\nEnviando respuesta\n");
+				strcat(respuesta, "OK ");
+				strcat(respuesta, comando);
+				strcat(respuesta, " \r\n\r\n");
+				strcat(respuesta, "PONG");
+				status = send(client,respuesta,strlen(respuesta),0);
+
+				printf("\nEnviado:\n %s",respuesta);
+				bzero(respuesta,255);
+
+			}
+			else if(strcmp(comando,"FILELIST\r\n")==0)
+			{
+				printf("Leí file list\nEnviando respuesta\n");
+				char fileno [5];
+				int number;
+				snprintf(fileno, 3, "%d", getFileCount());
+				number = atoi(fileno);
+				strcat(fileno, "\n\r");
+				status = send(client,fileno,strlen(fileno),0);
 
 
-			char filename[200];
-			DIR *dp;
-			  struct dirent *ep;     
-			  dp = opendir ("./");
-
-			    while (ep = readdir (dp))
-				{			      
-				strcat(filename,ep->d_name);
+				char *filename;
+				DIR *dp;
+				  struct dirent *ep;     
+				  dp = opendir ("./");
+				filename = (char*) calloc (1,200);
+				strcat(filename,"OK ");
+				strcat(filename,comando);
 				strcat(filename,"\r\n");
+				while (ep = readdir (dp))
+				{			      
+					strcat(filename,ep->d_name);
+					strcat(filename,"\r\n");
 				}
 				status = send(client,filename,strlen(filename),0);
 				printf("%s\n",filename);
 				bzero(filename,200);
-			    (void) closedir (dp);
+				(void) closedir (dp);
+
+
+			}
+			else if(strcmp(comando,"GETFILE\r\n")==0)
+			{
+				printf("Leí get file\nEnviando respuesta\n");
+			}
+			else if(strcmp(comando,"GETFILEPART\r\n")==0)
+			{
+				printf("Leí get file part\nEnviando respuesta\n");
+			}
+			else if(strcmp(comando,"GETFILESIZE\r\n")==0)
+			{
+				printf("Leí get file size\nEnviando respuesta\n");
+			}
+			else
+			{
+				printf("Comando no valido\n");
+			}
 
 
 		}
-		else if(strcmp(comando,"GETFILE\r\n")==0)
-		{
-			printf("Leí get file\nEnviando respuesta\n");
-		}
-		else if(strcmp(comando,"GETFILEPART\r\n")==0)
-		{
-			printf("Leí get file part\nEnviando respuesta\n");
-		}
-		else if(strcmp(comando,"GETFILESIZE\r\n")==0)
-		{
-			printf("Leí get file size\nEnviando respuesta\n");
-		}
-		else
-		{
-			printf("Comando no valido\n");
-		}
-
-
 	}
-	//desconectar
 }
 
 void commandService(char *command)
@@ -235,6 +242,9 @@ int main(int argc, char *argv[])
 	strcat(myStats, "\n\r\n\r");
 	strcat(myStats, "\0");
 	printf(myStats);
+	
+	//inicia el thread de escucha
+	pthread_create(&thread_tcp_service, NULL, tcp_service, (void *)&UDP_Client);
 
 	//hacer por siempre
 	while(1)
@@ -247,21 +257,9 @@ int main(int argc, char *argv[])
 		clientPort = ntohs(UDP_Client.sin_port);
 		
 		printf("Recibimos: [%s:%i] %s\n",clientip,clientPort,buffer);
-		//si es de hostDiscovery
-		if(buffer[0] == 'H')
-		{
-			//responder mi direccion TCP, puerto TCP, nombre y cantidad de archivos que tengo
-			printf("Respondiendo mensaje de hostDiscovery\n");
-			status = sendto(hdiscSocket , myStats ,strlen(myStats),0,(struct sockaddr*)&UDP_Client, sizeof(UDP_Client));
-
-		}else if(buffer[0] == 'C') //si es de conexion TCP
-		{
-			sleep(10);
-			//avisar que okas
-			status = sendto(hdiscSocket , "Vengase mijo",strlen("Vengase mijo"),0,(struct sockaddr*)&UDP_Client, sizeof(UDP_Client));
-			//crear hilo tcp_service
-			pthread_create(&thread_tcp_service, NULL, tcp_service, (void *)&UDP_Client);
-		}
+		//responder mi direccion TCP, puerto TCP, nombre y cantidad de archivos que tengo
+		printf("Respondiendo mensaje de hostDiscovery\n");
+		status = sendto(hdiscSocket , myStats ,strlen(myStats),0,(struct sockaddr*)&UDP_Client, sizeof(UDP_Client));
 	}
 	
 	return 0;
