@@ -88,7 +88,9 @@ int main(int argc, char* argv[])
 {
 	int server;
 	char comando[50];
+	char file [20];
 	char *filePath;
+	int i = 0;
 	struct sockaddr_in server_addr;
 	socklen_t tcp_len = sizeof(server_addr);
 	if (argc < 2)
@@ -182,26 +184,45 @@ int main(int argc, char* argv[])
 		gets(comando);
 		strcat(comando, "\r\n");
 		//printf("\nComando %s\n",comando);
-		status = write(server, comando, strlen(comando));
+		
 
 	
 		//Casos de respuesta según comando
 		if(strcmp(comando,"PING\r\n")==0)
 		{
+			status = write(server, comando, strlen(comando));
 			bzero(comando, 50);
 			printf("Esperando respuesta\n");
 			status = recvfrom(server, comando, 255, 0,(struct sockaddr *)&server_addr,&tcp_len);
 			//status = read(server, comando, 18);	
-			printf("Recibido: %s\n",comando);
+			printf("%s\n",comando);
 			bzero(comando,50);
 		}
 		else if(strcmp(comando,"FILELIST\r\n")==0)
 		{
-		
+			status = write(server, comando, strlen(comando));
+			char no [3];
+			char filenme [200];
+			int arch = 0;
+			status = recv(server, no, 3, 0);
+			arch = atoi(no);
+			printf("cantidad de archivos: %d\n", arch);	
+			for(i=0;i<arch;i++)
+			{
+			status = recv(server, filenme,strlen(filenme), 0);
+			printf("%s\n",filenme);
+			bzero(filenme,200);
+			}
+ 	
 		}
 		else if(strcmp(comando,"GETFILE\r\n")==0)
 		{
-		
+			printf("\nIngresa archivo a leer:");
+			gets(file);
+			strcat(comando, file);
+			strcat(comando, "\r\n");
+			printf("\nComando: %s\n",comando);
+			status = write(server, comando, strlen(comando));
 		}
 		else if(strcmp(comando,"GETFILEPART\r\n")==0)
 		{

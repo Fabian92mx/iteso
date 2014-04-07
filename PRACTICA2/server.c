@@ -47,6 +47,7 @@ void *tcp_service(void *arg)
 	char * TCPbuffer;
 	char comando [255];
 	char respuesta [255];
+	int i = 0;
 	printf("Iniciando conexion\n");
 	struct sockaddr_in clientAddress;
 	socklen_t clienteLen;
@@ -101,11 +102,15 @@ void *tcp_service(void *arg)
 		//Entrar en modo escucha
 		printf("\nEsperando comando\n");
 		bzero(comando, 255);
+		//Leer Comando
 		status = read(client,comando,255);
-		//Leer comando
+		//Separar comando en tokens
+		
+		
 	//Case comando
 		if(strcmp(comando,"PING\r\n")==0)
 		{
+			bzero(respuesta,255);
 			printf("Leí ping\nEnviando respuesta\n");
 			strcat(respuesta, "OK ");
 			strcat(respuesta, comando);
@@ -120,6 +125,29 @@ void *tcp_service(void *arg)
 		else if(strcmp(comando,"FILELIST\r\n")==0)
 		{
 			printf("Leí file list\nEnviando respuesta\n");
+			char fileno [3];
+			int number;
+			snprintf(fileno, 3, "%d", getFileCount());
+			number = atoi(fileno);
+			status = send(client,fileno,strlen(fileno),0);
+
+
+			char filename[200];
+			DIR *dp;
+			  struct dirent *ep;     
+			  dp = opendir ("./");
+
+			    while (ep = readdir (dp))
+				{			      
+				strcpy(filename,ep->d_name);
+				printf("%s\n",filename);
+				status = send(client,filename,strlen(filename),0);
+				bzero(filename,200);
+				}
+				
+			    (void) closedir (dp);
+
+
 		}
 		else if(strcmp(comando,"GETFILE\r\n")==0)
 		{
