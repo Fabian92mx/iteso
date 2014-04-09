@@ -45,7 +45,11 @@ int getFileCount()
 void *tcp_service(void *arg)
 {
 	char * TCPbuffer;
-	char comando [255];
+	char recivido [255];
+	char comando [255];	
+	char temp[255];
+	char arg1 [255];
+	char arg2 [255];
 	char respuesta [255];
 	int i = 0;
 	int tcpstatus;
@@ -104,11 +108,17 @@ void *tcp_service(void *arg)
 		//Leer comando
 			//Entrar en modo escucha
 			printf("\nEsperando comando\n");
+			bzero(recivido, 255);
 			bzero(comando, 255);
+			bzero(arg1, 255);
+			bzero(arg2, 255);
 			//Leer Comando
-			tcpstatus = read(client,comando,255);
+			tcpstatus = read(client,recivido,255);
+			strcpy(temp,recivido);
+			comando = strtok(temp, " ");
+			printf("comando: %s",comando);
 			//Separar comando en tokens
-		
+			
 		
 		//Case comando
 			if(strcmp(comando,"PING\r\n")==0)
