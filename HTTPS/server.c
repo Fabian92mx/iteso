@@ -17,7 +17,7 @@
 #include "debug.h"
 #include "defaults.h"
 #define OUTNAME "test.zip"
-#define FILEPATH "/home/fabian/HTTPS/Practica1/fitux.jpg"
+#define FILEPATH "/home/fabian/HTTPS/Practica1/imagen.bmp"
 #define NOTFOUND "/home/fabian/HTTPS/Practica1/notFound.html"
 
 void doGet(SSL* clientSocket, const char *fileName);
