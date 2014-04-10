@@ -89,6 +89,8 @@ int main(int argc, char* argv[])
 	int server;
 	char comando[50];
 	char file [20];
+	char arg1[10];
+	char arg2[10];
 	char *filePath;
 	int i = 0;
 	char no [3];
@@ -262,8 +264,48 @@ int main(int argc, char* argv[])
 		}
 		else if(strcmp(comando,"GETFILEPART\r\n")==0)
 		{
+			printf("\nIngresa archivo a leer:");
+			gets(file);
+			printf("\nIngresa nombre archivo destino:");
+			gets(archivo);
+			strcat(comando, file);
+			strcat(comando, "\r\n");
+			printf("\nIngresa el primer byte:");
+			gets(arg1);
+			printf("\nIngresa el ultimo byte:");
+			gets(arg2);
+			strcat(comando, arg1);
+			strcat(comando, "\r\n");
+			strcat(comando, arg2);
+			strcat(comando, "\r\n");
+			printf("\nComando: %s\n",comando);
+			status = write(server, comando, strlen(comando));
+			int argi1 = atoi(arg1);
+			int argi2 = atoi(arg2);
+			totalFileSize = argi2 -argi1;	
+			readBytes = 0;
+			writeBytes = 0;
+			//Abrir/crear archivo para recivir
+			if ((fd = open(archivo, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP))==-1)
+			{
+			printf("Error al abrir el archivo\n");
+			return 1;
+			}
+			//Leer el archivo
+			totalReadBytes = 0;
+			while(totalReadBytes < totalFileSize && (readBytes = read(server, buf, 255)) > 0)
+	{	
+		writeBytes = 0;
+		while(writeBytes < readBytes)
+		{
+			writeBytes = write(fd, buf + writeBytes, readBytes - writeBytes);
+		}
+		printf("Se leyeron %i bytes de %i del servidor\n", readBytes, totalFileSize);
+		totalReadBytes += readBytes;	
+	}
 			
 		}
+		
 		else if(strcmp(comando,"GETFILESIZE\r\n")==0)
 		{
 			printf("\nIngresa archivo a obtener tamaño:");
@@ -274,7 +316,7 @@ int main(int argc, char* argv[])
 			status = write(server, comando, strlen(comando));
 			
 			status = read(server,buf, 10);
-printf("El tamaño del archivo es: %s \n",buf);
+			printf("El tamaño del archivo es: %s \n",buf);
 		}
 		else
 		{
