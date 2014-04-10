@@ -45,11 +45,11 @@ int getFileCount()
 void *tcp_service(void *arg)
 {
 	char * TCPbuffer;
-	char recivido [255];
-	char comando [255];	
+	char recivido[255];
+	char *comando;	
 	char temp[255];
-	char arg1 [255];
-	char arg2 [255];
+	char *arg1;
+	char *arg2;
 	char respuesta [255];
 	int i = 0;
 	int tcpstatus;
@@ -109,13 +109,17 @@ void *tcp_service(void *arg)
 			//Entrar en modo escucha
 			printf("\nEsperando comando\n");
 			bzero(recivido, 255);
-			bzero(comando, 255);
-			bzero(arg1, 255);
-			bzero(arg2, 255);
+			//bzero(comando, 255);
+			//bzero(arg1, 255);
+			//bzero(arg2, 255);
+			printf("Cosas limpias\n");
 			//Leer Comando
 			tcpstatus = read(client,recivido,255);
 			strcpy(temp,recivido);
-			comando = strtok(temp, " ");
+			printf("temp: '%s'", temp);
+			comando = strtok(temp, ":\r\n");
+			printf("temp: '%s'", temp);
+			strcat(comando, "\r\n");
 			printf("comando: %s",comando);
 			//Separar comando en tokens
 			
@@ -169,6 +173,8 @@ void *tcp_service(void *arg)
 			else if(strcmp(comando,"GETFILE\r\n")==0)
 			{
 				printf("Leí get file\nEnviando respuesta\n");
+				arg1 = strtok(NULL, ":\r\n");
+				printf("Arg1: %s", arg1);
 			}
 			else if(strcmp(comando,"GETFILEPART\r\n")==0)
 			{
