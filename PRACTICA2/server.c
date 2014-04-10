@@ -56,6 +56,7 @@ void *tcp_service(void *arg)
 {
 	char * TCPbuffer;
 	char recivido[255];
+	char message[100];
 	char *comando;	
 	char temp[255];
 	char *arg1;
@@ -63,7 +64,7 @@ void *tcp_service(void *arg)
 	char *arg3;
 	char respuesta [255];
 	int i = 0;
-	int tcpstatus, initByte, bytes;
+	int tcpstatus, initByte, bytes, fileSize;
 	printf("Iniciando thread de conexion\n");
 	struct sockaddr_in clientAddress;
 	socklen_t clienteLen;
@@ -203,6 +204,16 @@ void *tcp_service(void *arg)
 			else if(strcmp(comando,"GETFILESIZE")==0)
 			{
 				printf("Leí get file size\nEnviando respuesta\n");
+				arg1 = strtok(NULL, "\r\n");
+				printf("Arg1: %s\n", arg1);
+				fileSize = getFileSize(arg1);
+				if(fileSize < 0)
+					status = send(client,"FILE NOT FOUND",strlen("FILE NOT FOUND"),0);
+				else
+				{
+					snprintf(message, 100, "%i", fileSize);		
+					status = send(client, message, 10 ,0);
+				}
 			}
 			else
 			{
@@ -211,6 +222,27 @@ void *tcp_service(void *arg)
 
 
 		}
+	}
+}
+
+int getFileSize(char *filePath)
+{
+	int file;
+	int fileSize;
+	struct stat buf;
+	
+	//verifica existencia de archivo y su tamano
+	file = open(filePath, O_RDONLY);
+
+	if(file == -1)
+	{
+		return -1;
+	}else
+	{
+		//get the file size
+		fstat(file, &buf);
+		fileSize = buf.st_size;
+		return fileSize;
 	}
 }
 
