@@ -31,7 +31,7 @@ int tcpPort;
 char *charTcpPort;
 char *name;
 
-void sendFile(char *filePath, int client,int initialBytes, int bytes);
+void sendFile(char *filePath, int client,int initialBytes, int bytes, int mode);
 
 int getFileCount()
 {
@@ -184,7 +184,7 @@ void *tcp_service(void *arg)
 				printf("Leí get file\nEnviando respuesta\n");
 				arg1 = strtok(NULL, "\r\n");
 				printf("Arg1: %s\n", arg1);
-				sendFile(arg1, client, 0, 0);
+				sendFile(arg1, client, 0, 0, 0);
 			}
 			else if(strcmp(comando,"GETFILEPART")==0)
 			{
@@ -199,7 +199,7 @@ void *tcp_service(void *arg)
 				initByte = atoi(arg2);
 				bytes = atoi(arg3);
 				
-				sendFile(arg1, client, initByte, bytes);
+				sendFile(arg1, client, initByte, bytes, 1);
 			}
 			else if(strcmp(comando,"GETFILESIZE")==0)
 			{
@@ -246,7 +246,7 @@ int getFileSize(char *filePath)
 	}
 }
 
-void sendFile(char *filePath, int client, int initialByte, int bytes)
+void sendFile(char *filePath, int client, int initialByte, int bytes, int mode)
 {
 	int file;
 	int writeBytes, readBytes, length, fileSize, totalSent, nextReadSize;
@@ -279,13 +279,16 @@ void sendFile(char *filePath, int client, int initialByte, int bytes)
 		length = 10;
 		char message[100];
 		snprintf(message, 100, "%i", fileSize);
-		printf("Enviando %s al cliente\n", message);
-		while(writeBytes < length)
+		if(mode == 0)
 		{
-			writeBytes = write(client, message + writeBytes, length - writeBytes);
-			printf("Se escribieron %i bytes de %i al cliente\n", writeBytes, length);
+			printf("Enviando %s al cliente\n", message);
+			while(writeBytes < length)
+			{
+				writeBytes = write(client, message + writeBytes, length - writeBytes);
+				printf("Se escribieron %i bytes de %i al cliente\n", writeBytes, length);
+			}
+			//recibe confirmacion
 		}
-		//recibe confirmacion
 		printf("Enviando %s al cliente\n", filePath);
 		readBytes = 0;
 		writeBytes = 0;
