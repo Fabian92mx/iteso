@@ -93,8 +93,8 @@ int main(int argc, char* argv[])
 	int i = 0;
 	char no [3];
 	char filenme [200];
-	char * buffer;
-	buffer = (char*) calloc(1, 255);
+	char * buf;
+	buf = (char*) calloc(1, 255);
 	int arch = 0;
 	int readBytes = 0;
 	int writeBytes = 0;
@@ -234,9 +234,9 @@ int main(int argc, char* argv[])
 			printf("\nComando: %s\n",comando);
 			status = write(server, comando, strlen(comando));
 			//Esperar respuesta de tamaño:
-			status = read(server,buffer, 10);
-			printf("El tamaño del archivo es: %s \n",buffer);
-			totalFileSize = atoi(buffer);
+			status = read(server,buf, 10);
+			printf("El tamaño del archivo es: %s \n",buf);
+			totalFileSize = atoi(buf);
 				
 			readBytes = 0;
 			writeBytes = 0;
@@ -248,12 +248,12 @@ int main(int argc, char* argv[])
 			}
 			//Leer el archivo
 			totalReadBytes = 0;
-			while(totalReadBytes < totalFileSize && (readBytes = read(server, buffer, 255)) > 0)
+			while(totalReadBytes < totalFileSize && (readBytes = read(server, buf, 255)) > 0)
 	{	
 		writeBytes = 0;
 		while(writeBytes < readBytes)
 		{
-			writeBytes = write(fd, buffer + writeBytes, readBytes - writeBytes);
+			writeBytes = write(fd, buf + writeBytes, readBytes - writeBytes);
 		}
 		printf("Se leyeron %i bytes de %i del servidor\n", readBytes, totalFileSize);
 		totalReadBytes += readBytes;	
@@ -273,8 +273,8 @@ int main(int argc, char* argv[])
 			printf("\nComando: %s\n",comando);
 			status = write(server, comando, strlen(comando));
 			
-			status = read(server,buffer, 10);
-printf("El tamaño del archivo es: %s \n",buffer);
+			status = read(server,buf, 10);
+printf("El tamaño del archivo es: %s \n",buf);
 		}
 		else
 		{
