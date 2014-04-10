@@ -31,7 +31,7 @@ int tcpPort;
 char *charTcpPort;
 char *name;
 
-void sendFile(char *filePath, int client, int bytes);
+void sendFile(char *filePath, int client,int initialBytes, int bytes);
 
 int getFileCount()
 {
@@ -60,9 +60,10 @@ void *tcp_service(void *arg)
 	char temp[255];
 	char *arg1;
 	char *arg2;
+	char *arg3;
 	char respuesta [255];
 	int i = 0;
-	int tcpstatus;
+	int tcpstatus, initByte, bytes;
 	printf("Iniciando thread de conexion\n");
 	struct sockaddr_in clientAddress;
 	socklen_t clienteLen;
@@ -181,12 +182,23 @@ void *tcp_service(void *arg)
 			{
 				printf("Leí get file\nEnviando respuesta\n");
 				arg1 = strtok(NULL, "\r\n");
-				printf("Arg1: %s", arg1);
-				sendFile(arg1, client, 0);
+				printf("Arg1: %s\n", arg1);
+				sendFile(arg1, client, 0, 0);
 			}
 			else if(strcmp(comando,"GETFILEPART")==0)
 			{
 				printf("Leí get file part\nEnviando respuesta\n");
+				arg1 = strtok(NULL, "\r\n");
+				printf("Arg1: %s\n", arg1);
+				arg2 = strtok(NULL, "\r\n");
+				printf("Arg2: %s\n", arg2);
+				arg3 = strtok(NULL, "\r\n");
+				printf("Arg3: %s\n", arg3);
+				
+				initByte = atoi(arg2);
+				bytes = atoi(arg3);
+				
+				sendFile(arg1, client, initByte, bytes);
 			}
 			else if(strcmp(comando,"GETFILESIZE")==0)
 			{
@@ -202,7 +214,7 @@ void *tcp_service(void *arg)
 	}
 }
 
-void sendFile(char *filePath, int client, int bytes)
+void sendFile(char *filePath, int client, int initialByte, int bytes)
 {
 	int file;
 	int writeBytes, readBytes, length, fileSize, totalSent, nextReadSize;
@@ -249,6 +261,15 @@ void sendFile(char *filePath, int client, int bytes)
 		
 		if(bytes == 0)
 			bytes = fileSize;
+		
+		totalSent = 0;
+
+		while(totalSent < initialByte)
+		{
+			readBytes = read(file, newbuffer, 1);
+			totalSent ++;
+		}
+
 		totalSent = 0;
 		nextReadSize = min((bytes - totalSent), BUFFERSIZE);
 		readBytes = read(file, newbuffer, nextReadSize);
