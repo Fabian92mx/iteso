@@ -8,6 +8,12 @@
 #include <sys/types.h>
 #include <dirent.h>
 #include <errno.h>
+#include <fcntl.h>
+
+#define ERROR_NOT_FOUND		"NO"
+#define OK			"Ok"
+#define BYE			"Bye"
+#define BUFFERSIZE		255
 
 pthread_t thread_tcp_service;
 int hdiscSocket;
@@ -22,6 +28,8 @@ int BCPermission;
 int tcpPort;
 char *charTcpPort;
 char *name;
+
+void sendFile(char *filePath, int client);
 
 int getFileCount()
 {
@@ -172,6 +180,7 @@ void *tcp_service(void *arg)
 				printf("Leí get file\nEnviando respuesta\n");
 				arg1 = strtok(NULL, "\r\n");
 				printf("Arg1: %s", arg1);
+				sendFile(arg1, client);
 			}
 			else if(strcmp(comando,"GETFILEPART")==0)
 			{
@@ -188,6 +197,64 @@ void *tcp_service(void *arg)
 
 
 		}
+	}
+}
+
+void sendFile(char *filePath, int client)
+{
+	int file;
+	int writeBytes, readBytes, length, fileSize;
+	struct stat buf;
+	char buffer[255];
+	
+	//verifica existencia de archivo y su tamano
+	file = open(filePath, O_RDONLY);
+
+	if(file == -1)
+	{
+		//envia file not found
+		printf("COULDNT OPEN FILE\n");
+		writeBytes = 0;
+		length = strlen(ERROR_NOT_FOUND);
+		printf("Enviando %s al cliente\n", ERROR_NOT_FOUND);
+		while(writeBytes < length)
+		{
+			writeBytes = send(client, ERROR_NOT_FOUND + writeBytes, length - writeBytes, 0);
+			printf("Se escribieron %i bytes de %i al cliente\n", writeBytes, length);
+		}
+	}else
+	{
+		//get the file size
+		fstat(file, &buf);
+		fileSize = buf.st_size;
+		printf("File Size: %i\n", fileSize);
+		//envia filesize
+		writeBytes = 0;
+		length = 10;
+		char message[100];
+		snprintf(message, 100, "%i", fileSize);
+		printf("Enviando %s al cliente\n", message);
+		while(writeBytes < length)
+		{
+			writeBytes = write(client, message + writeBytes, length - writeBytes);
+			printf("Se escribieron %i bytes de %i al cliente\n", writeBytes, length);
+		}
+		//recibe confirmacion
+		printf("Enviando %s al cliente\n", filePath);
+		readBytes = 0;
+		writeBytes = 0;
+		bzero(buffer, 255);
+		while((readBytes = read(file, buffer, BUFFERSIZE)) > 0)
+		{
+			printf("Se escribiran %i bytes al cliente\n", readBytes);
+			writeBytes = 0;
+			while(writeBytes < readBytes)
+			{
+				writeBytes = write(client, buffer + writeBytes, readBytes - writeBytes);
+				printf("Se escribieron %i bytes de %i al cliente\n", writeBytes, readBytes);
+			}
+		}
+		printf("Archivo enviado al cliente\n");
 	}
 }
 
