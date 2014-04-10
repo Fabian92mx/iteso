@@ -10,6 +10,8 @@
 #include <errno.h>
 #include <fcntl.h>
 
+#define min(x,y) ((x) < (y) ? (x):(y))
+
 #define ERROR_NOT_FOUND		"NO"
 #define OK			"Ok"
 #define BYE			"Bye"
@@ -29,7 +31,7 @@ int tcpPort;
 char *charTcpPort;
 char *name;
 
-void sendFile(char *filePath, int client);
+void sendFile(char *filePath, int client, int bytes);
 
 int getFileCount()
 {
@@ -180,7 +182,7 @@ void *tcp_service(void *arg)
 				printf("Leí get file\nEnviando respuesta\n");
 				arg1 = strtok(NULL, "\r\n");
 				printf("Arg1: %s", arg1);
-				sendFile(arg1, client);
+				sendFile(arg1, client, 0);
 			}
 			else if(strcmp(comando,"GETFILEPART")==0)
 			{
@@ -200,12 +202,12 @@ void *tcp_service(void *arg)
 	}
 }
 
-void sendFile(char *filePath, int client)
+void sendFile(char *filePath, int client, int bytes)
 {
 	int file;
-	int writeBytes, readBytes, length, fileSize;
+	int writeBytes, readBytes, length, fileSize, totalSent, nextReadSize;
 	struct stat buf;
-	char buffer[255];
+	char newbuffer[255];
 	
 	//verifica existencia de archivo y su tamano
 	file = open(filePath, O_RDONLY);
@@ -243,16 +245,25 @@ void sendFile(char *filePath, int client)
 		printf("Enviando %s al cliente\n", filePath);
 		readBytes = 0;
 		writeBytes = 0;
-		bzero(buffer, 255);
-		while((readBytes = read(file, buffer, BUFFERSIZE)) > 0)
+		bzero(newbuffer, 255);
+		
+		if(bytes == 0)
+			bytes = fileSize;
+		totalSent = 0;
+		nextReadSize = min((bytes - totalSent), BUFFERSIZE);
+		readBytes = read(file, newbuffer, nextReadSize);
+		while(readBytes > 0)
 		{
 			printf("Se escribiran %i bytes al cliente\n", readBytes);
 			writeBytes = 0;
 			while(writeBytes < readBytes)
 			{
-				writeBytes = write(client, buffer + writeBytes, readBytes - writeBytes);
+				writeBytes = write(client, newbuffer + writeBytes, readBytes - writeBytes);
 				printf("Se escribieron %i bytes de %i al cliente\n", writeBytes, readBytes);
 			}
+			totalSent += writeBytes;
+			nextReadSize = min((bytes - totalSent), BUFFERSIZE);
+			readBytes = read(file, newbuffer, nextReadSize);
 		}
 		printf("Archivo enviado al cliente\n");
 	}
