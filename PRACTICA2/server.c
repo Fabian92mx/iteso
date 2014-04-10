@@ -116,16 +116,13 @@ void *tcp_service(void *arg)
 			//Leer Comando
 			tcpstatus = read(client,recivido,255);
 			strcpy(temp,recivido);
-			printf("temp: '%s'", temp);
-			comando = strtok(temp, ":\r\n");
-			printf("temp: '%s'", temp);
-			strcat(comando, "\r\n");
+			comando = strtok(temp, "\r\n");
 			printf("comando: %s",comando);
 			//Separar comando en tokens
 			
 		
 		//Case comando
-			if(strcmp(comando,"PING\r\n")==0)
+			if(strcmp(comando,"PING")==0)
 			{
 				bzero(respuesta,255);
 				printf("Leí ping\nEnviando respuesta\n");
@@ -139,7 +136,7 @@ void *tcp_service(void *arg)
 				bzero(respuesta,255);
 
 			}
-			else if(strcmp(comando,"FILELIST\r\n")==0)
+			else if(strcmp(comando,"FILELIST")==0)
 			{
 				printf("Leí file list\nEnviando respuesta\n");
 				char fileno [5];
@@ -170,17 +167,17 @@ void *tcp_service(void *arg)
 
 
 			}
-			else if(strcmp(comando,"GETFILE\r\n")==0)
+			else if(strcmp(comando,"GETFILE")==0)
 			{
 				printf("Leí get file\nEnviando respuesta\n");
-				arg1 = strtok(NULL, ":\r\n");
+				arg1 = strtok(NULL, "\r\n");
 				printf("Arg1: %s", arg1);
 			}
-			else if(strcmp(comando,"GETFILEPART\r\n")==0)
+			else if(strcmp(comando,"GETFILEPART")==0)
 			{
 				printf("Leí get file part\nEnviando respuesta\n");
 			}
-			else if(strcmp(comando,"GETFILESIZE\r\n")==0)
+			else if(strcmp(comando,"GETFILESIZE")==0)
 			{
 				printf("Leí get file size\nEnviando respuesta\n");
 			}
