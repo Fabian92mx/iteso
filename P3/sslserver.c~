@@ -121,7 +121,7 @@ void Servlet(SSL* ssl) /* Serve the connection -- threadable */
         }
         else
             ERR_print_errors_fp(stderr);
-    }
+    //}
     sd = SSL_get_fd(ssl);       /* get socket connection */
     SSL_free(ssl);         /* release SSL state */
     close(sd);          /* close connection */
@@ -144,7 +144,7 @@ int main(int count, char *strings[])
 
     ctx = InitServerCTX();        /* initialize SSL */
 
-    LoadCertificates(ctx, "rootCA2.pem", "device.key"); /* load certs */
+    LoadCertificates(ctx, "device.csr", "device.key"); /* load certs */
 
 	//validar con respecto a la autoridad
 	SSL_CTX_load_verify_locations(ctx, "rootCA2.pem", "."); 

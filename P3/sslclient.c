@@ -12,6 +12,14 @@
 
 #define FAIL    -1
 
+int OpenConnection(const char *hostname, int port);
+int parseEmail(char *src, int srcSize, char *dest, int destSize);
+void ShowCerts(SSL* ssl);
+SSL_CTX* InitCTX(void);
+int main(int count, char *strings[]);
+void LoadCertificates(SSL_CTX* ctx, char* CertFile, char* KeyFile);
+
+
 int OpenConnection(const char *hostname, int port)
 {   int sd;
     struct hostent *host;
@@ -59,7 +67,7 @@ SSL_CTX* InitCTX(void)
 void ShowCerts(SSL* ssl)
 {   X509 *cert;
     char *line;
-
+    char mail[30];
     cert = SSL_get_peer_certificate(ssl); /* get the server's certificate */
     if ( cert != NULL )
     {
@@ -71,6 +79,9 @@ void ShowCerts(SSL* ssl)
         free(line);       /* free the malloc'ed string */
         line = X509_NAME_oneline(X509_get_issuer_name(cert), 0, 0);
         printf("Issuer: %s\n", line);
+	parseEmail(line, strlen(line), mail, 30);
+	printf("email: %s\n", mail);
+	
         free(line);       /* free the malloc'ed string */
         X509_free(cert);     /* free the malloc'ed certificate copy */
     }
@@ -121,8 +132,8 @@ int main(int count, char *strings[])
  	portnum=strings[2];
 
     ctx = InitCTX();
-    LoadCertificates(ctx, "device.csr", "device.key"); 
-
+    LoadCertificates(ctx, "device.csr", "device.key");
+    
     server = OpenConnection(hostname, atoi(portnum));
 
     ssl = SSL_new(ctx);      /* create new SSL connection state */
@@ -148,3 +159,57 @@ int main(int count, char *strings[])
     SSL_CTX_free(ctx);        /* release context */
     return 0;
 }
+
+
+int parseEmail(char *src, int srcSize, char *dest, int destSize)
+{
+	if(src == NULL || dest == NULL)
+		return -1;
+	
+	char compare[] = "emailAddress=";
+	char *init = src;
+	char *curCheck = compare;
+	int initOffset = 0;
+	int curCheckOffset = 0;
+	int rSeeker = 0;
+	int compareLen = strlen(compare);
+	printf("src = %s, compare = %s\n", init, curCheck);
+	printf("initOffset = %i, srcSize = %i\n", initOffset, srcSize);
+	while(initOffset < srcSize)
+	{
+		printf("comparing init+%i (%c) to curCheck+%i(%c)\n", initOffset, *(init+initOffset), curCheckOffset, *(curCheck+curCheckOffset));
+		if(*(init+initOffset) == *(curCheck+curCheckOffset))
+		{
+			printf("	they're equal. Incrementing curCheckOffset.\n");
+			curCheckOffset++;
+			
+			printf("	checking if the comparison finished completely\n");
+			printf("	if(%i == %i)\n", curCheckOffset, compareLen);
+			if(curCheckOffset == compareLen)
+			{
+			printf("		Match has completed. Searching for next \\r.\n");
+			init = init+initOffset+1;
+			//printf("		checking %c\n", *(init+rSeeker));
+			while(initOffset+rSeeker < srcSize && (*(init+rSeeker) != '\r' || *(init+rSeeker) != '\n' || *(init+rSeeker) != ' ' || *(init+rSeeker) != '\0'))
+			{
+				rSeeker++;
+				//sleep(1);		
+				printf("		checking %c\n", *(init+rSeeker));
+			}
+				printf("		email is %s\n", init);
+				printf("		rSeeker = %i\n", rSeeker);
+				bzero(dest, destSize);
+				memcpy(dest, init, rSeeker);
+				return 1;
+			}
+		}else
+		{
+			printf("	they're not equal. Resetting curCheckOffset\n");
+			curCheckOffset = 0;
+		}
+		initOffset++;
+	}
+	
+	return -1;
+}
+
