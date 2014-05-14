@@ -121,7 +121,7 @@ int main(int count, char *strings[])
  	portnum=strings[2];
 
     ctx = InitCTX();
-    LoadCertificates(ctx, "device.csr", "device.key"); 
+    LoadCertificates(ctx, "certificado.crt", "device.key"); 
 
     server = OpenConnection(hostname, atoi(portnum));
 

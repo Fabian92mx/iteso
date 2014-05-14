@@ -144,7 +144,7 @@ int main(int count, char *strings[])
 
     ctx = InitServerCTX();        /* initialize SSL */
 
-    LoadCertificates(ctx, "device.csr", "device.key"); /* load certs */
+    LoadCertificates(ctx, "rootCA2.pem", "device.key"); /* load certs */
 
 	//validar con respecto a la autoridad
 	SSL_CTX_load_verify_locations(ctx, "rootCA2.pem", "."); 
