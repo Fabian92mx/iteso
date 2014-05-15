@@ -1,14 +1,19 @@
 //SSL-Client.c
-#include <stdio.h>
+#include <netdb.h>
 #include <errno.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <arpa/inet.h>
 #include <sys/socket.h>
+#include <sys/types.h>
+#include <netinet/in.h>
 #include <resolv.h>
-#include <netdb.h>
-#include <openssl/ssl.h>
-#include <openssl/err.h>
+#include <stdio.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include "openssl/ssl.h"
+#include "openssl/err.h"
 
 #define FAIL -1
 
@@ -116,6 +121,7 @@ int main(int count, char *strings[])
     SSL *ssl;
     char buf[1024];
     int bytes;
+	int fd;
     char *hostname, *portnum;
 
     if ( count != 3 )
@@ -153,11 +159,47 @@ int main(int count, char *strings[])
         printf("Received: \"%s\"\n", buf);
 			//Esperar accept
 			bytes = 0;
+			bzero(buf,1024);
 			bytes = SSL_read(ssl, buf, sizeof(buf)); /* get reply & decrypt */
         
 			buf[bytes] = 0;
        		 printf("accept?: \"%s\"\n", buf);
 
+			//File transfer
+			//Recibir tamaño
+			bytes = 0;
+			bzero(buf,1024);
+			bytes = SSL_read(ssl,buf, sizeof(buf));
+			buf[bytes] = 0;
+			printf("El tamaño del archivo es: %s \n",buf);
+			int totalFileSize = atoi(buf);
+			//Enviar "OK"
+			printf("enviando OK\n");
+			bytes = SSL_write(ssl, "Ok", 2);
+			
+			// Leer el archivo:
+			int readBytes = 0;
+			int writeBytes = 0;
+			 if ((fd = open("archivoRecivido.txt", O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP))==-1)
+				{
+				printf("Error al abrir el archivo\n");
+				return 1;
+				}
+			int totalReadBytes = 0;
+			printf("TotalfileSize = %i\n", totalFileSize);
+			bzero(buf,1024);
+			while(totalReadBytes < totalFileSize && (readBytes = SSL_read(ssl, buf, 1024)) > 0)
+				{	
+					writeBytes = 0;
+					while(writeBytes < readBytes)
+					{
+						writeBytes = write(fd, buffer + writeBytes, readBytes - writeBytes);
+					}
+					printf("Se leyeron %i bytes de %i del servidor\n", readBytes, totalFileSize);
+					totalReadBytes += readBytes;	
+				}
+
+			//end of FT
         SSL_free(ssl); /* release connection state */
     }
     close(server); /* close socket */

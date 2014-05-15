@@ -8,6 +8,9 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <resolv.h>
+#include <stdio.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include "openssl/ssl.h"
 #include "openssl/err.h"
 
@@ -24,7 +27,6 @@ int main(int count, char *strings[]);
 
 //Global
 char mail[30];
-//char mail[]="parres@iteso.mx";
 char email[] = "parres@iteso.mx";
 
 int OpenListener(int port)
@@ -119,6 +121,7 @@ void ShowCerts(SSL* ssl)
 void Servlet(SSL* ssl) /* Serve the connection -- threadable */
 {   char buf[1024];
     char reply[1024];
+	struct stat buff;
     int sd, bytes;
     const char* HTMLecho="<html><body><pre>%s</pre></body></html>\n\n";
 	char* accept = "Autoridad confirmada\niniciando FT\n";
@@ -140,7 +143,53 @@ void Servlet(SSL* ssl) /* Serve the connection -- threadable */
 			{
 				printf("Enviando:\n%s\n",accept);
 				SSL_write(ssl, accept, strlen(accept));
-				printf("Indique el archivo a transferir\n");
+
+
+					//File Transfer
+
+
+					int file = open("archivo.txt", O_RDONLY);
+					
+
+					//get the file size
+					fstat(file, &buff);
+					bzero(buf,1024);
+					int fileSize = buff.st_size;
+					printf("File Size: %i\n", fileSize);
+					//envia filesize
+					int writeBytes = 0;
+					int length = 10;
+					snprintf(buf, 100, "%i", fileSize);
+					printf("Enviando %s al cliente\n", buf);
+					while(writeBytes < length)
+					{
+						writeBytes = SSL_write(ssl, buf + writeBytes, length - writeBytes);
+						printf("Se escribieron %i bytes de b%i al cliente\n", writeBytes, length);
+					}
+					//recibe confirmacion
+										
+					bzero(buf,1024);
+					printf("Esperando confirmacion de cliente...\n");
+					bytes = SSL_read(ssl, buf, 2);
+					buf[bytes] = 0;
+					printf("Ciente ha confirmado: %s\n", buf);
+					//envia archivo				
+					printf("Enviando archivo al cliente\n");
+					int readBytes = 0;
+					writeBytes = 0;
+					bzero(buf,1024);
+						while((readBytes = read(file, buf, 1024)) > 0)
+						{
+							printf("Se escribiran %i bytes al cliente\n", readBytes);
+							writeBytes = 0;
+							while(writeBytes < readBytes)
+							{
+								writeBytes = SSL_write(ssl, buf + writeBytes, readBytes - writeBytes);
+								printf("Se escribieron %i bytes de %i al cliente\n", writeBytes, readBytes);
+							}
+						}
+					printf("Archivo enviado al cliente\n");
+					//End of FT
 			}
 			else
 			{
