@@ -1,0 +1,15 @@
+all: sslserver sslclient
+
+server: sslserver.c
+	
+	gcc  sslserver.c -o sslserver  -lssl -lcrypto
+
+client: sslclient.c
+	
+	gcc  sslclient.c -o sslclient  -lssl -lcrypto
+
+clean:
+	rm sslserver
+	rm sslclient
+
+

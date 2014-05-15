@@ -13,6 +13,20 @@
 
 #define FAIL    -1
 
+//functions
+int parseEmail(char *src, int srcSize, char *dest, int destSize);
+int OpenListener(int port);
+SSL_CTX* InitServerCTX(void);
+void LoadCertificates(SSL_CTX* ctx, char* CertFile, char* KeyFile);
+void ShowCerts(SSL* ssl);
+void Servlet(SSL* ssl);
+int main(int count, char *strings[]);
+
+//Global
+char mail[30];
+//char mail[]="parres@iteso.mx";
+char email[] = "parres@iteso.mx";
+
 int OpenListener(int port)
 {   int sd;
     struct sockaddr_in addr;
@@ -86,6 +100,8 @@ void ShowCerts(SSL* ssl)
         free(line);
         line = X509_NAME_oneline(X509_get_issuer_name(cert), 0, 0);
         printf("Issuer: %s\n", line);
+		parseEmail(line, strlen(line), mail, 30); //parsea el correo de la autoridad
+		printf("\nParsed email: [%s]\n\n", mail);
      
 		if(SSL_get_verify_result(ssl) == X509_V_OK) {
             printf("client verification with SSL_get_verify_result() succeeded.\n");                
@@ -105,6 +121,7 @@ void Servlet(SSL* ssl) /* Serve the connection -- threadable */
     char reply[1024];
     int sd, bytes;
     const char* HTMLecho="<html><body><pre>%s</pre></body></html>\n\n";
+	char* accept = "Autoridad confirmada\niniciando FT\n";
 
     if ( SSL_accept(ssl) == FAIL )     /* do SSL-protocol accept */
         ERR_print_errors_fp(stderr);
@@ -118,6 +135,17 @@ void Servlet(SSL* ssl) /* Serve the connection -- threadable */
             printf("Client msg: \"%s\"\n", buf);
             sprintf(reply, HTMLecho, buf);   /* construct reply */
             SSL_write(ssl, reply, strlen(reply)); /* send reply */
+			printf("Comparando:[%s]con[%s]\n",mail, email);			
+			if(strcmp (mail,email) == 0)
+			{
+				printf("Enviando:\n%s\n",accept);
+				SSL_write(ssl, accept, strlen(accept));
+				printf("Indique el archivo a transferir\n");
+			}
+			else
+			{
+				printf("\nNo se puede confirmar autoridad\n");
+			}
         }
         else
             ERR_print_errors_fp(stderr);
@@ -126,6 +154,60 @@ void Servlet(SSL* ssl) /* Serve the connection -- threadable */
     SSL_free(ssl);         /* release SSL state */
     close(sd);          /* close connection */
 }
+
+
+int parseEmail(char *src, int srcSize, char *dest, int destSize)
+{
+		if(src == NULL || dest == NULL)
+			return -1;
+
+		char compare[] = "emailAddress=";
+		char *init = src;
+		char *curCheck = compare;
+		int initOffset = 0;
+		int curCheckOffset = 0;
+		int rSeeker = 0;
+		int compareLen = strlen(compare);
+		//printf("src = %s, compare = %s\n", init, curCheck);
+		//printf("initOffset = %i, srcSize = %i\n", initOffset, srcSize);
+		while(initOffset < srcSize)
+		{
+			//printf("comparing init+%i (%c) to curCheck+%i(%c)\n", initOffset, *(init+initOffset), curCheckOffset, *(curCheck+curCheckOffset));
+			if(*(init+initOffset) == *(curCheck+curCheckOffset))
+			{
+				//printf(" they're equal. Incrementing curCheckOffset.\n");
+				curCheckOffset++;
+
+				//printf(" checking if the comparison finished completely\n");
+				//printf(" if(%i == %i)\n", curCheckOffset, compareLen);
+				if(curCheckOffset == compareLen)
+				{
+					//printf(" Match has completed. Searching for next \\r.\n");
+					init = init+initOffset+1;
+					//printf(" checking %c\n", *(init+rSeeker));
+				while(initOffset+rSeeker < srcSize && (*(init+rSeeker) != '\r' || *(init+rSeeker) != '\n' || *(init+rSeeker) != ' ' || *(init+rSeeker) != '\0'))
+				{
+					rSeeker++;
+					//sleep(1);
+					//printf(" checking %c\n", *(init+rSeeker));
+				}
+				//printf(" email is %s\n", init);
+				//printf(" rSeeker = %i\n", rSeeker);
+				bzero(dest, destSize);
+				memcpy(dest, init, rSeeker);
+				return 1;
+				}
+			}else
+			{
+				//printf(" they're not equal. Resetting curCheckOffset\n");
+				curCheckOffset = 0;
+			}
+		initOffset++;
+	}
+
+	return -1;
+}
+
 
 int main(int count, char *strings[])
 {   SSL_CTX *ctx;
@@ -144,9 +226,8 @@ int main(int count, char *strings[])
 
     ctx = InitServerCTX();        /* initialize SSL */
 
-    LoadCertificates(ctx, "device.csr", "device.key"); /* load certs */
+    LoadCertificates(ctx, "rootCA2.pem", "rootCA2.key"); /* load certs */
 
-	//validar con respecto a la autoridad
 	SSL_CTX_load_verify_locations(ctx, "rootCA2.pem", "."); 
 	SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, NULL);
 	SSL_CTX_set_verify_depth(ctx,1);
@@ -163,7 +244,7 @@ int main(int count, char *strings[])
         ssl = SSL_new(ctx);              /* get new SSL state with context */
         SSL_set_fd(ssl, client);      /* set connection socket to SSL state */
         Servlet(ssl);         /* service connection */
-	//Falta comparar correo de autoridad con certificado del cliente
+	
     }
     close(server);          /* close server socket */
     SSL_CTX_free(ctx);         /* release context */
